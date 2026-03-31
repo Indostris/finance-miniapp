@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
+import AssistantScreen  from './AssistantScreen'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   const [cardPage,     setCardPage]     = useState(0)
   const [showMenu,     setShowMenu]     = useState(false)
   const [addType,      setAddType]      = useState(null)
+  const [showAI,       setShowAI]       = useState(false)
   const carouselRef = useRef(null)
 
   function handleScroll(e) {
@@ -53,9 +55,8 @@ export default function HomeScreen() {
     setCardPage(idx)
   }
 
-  if (addType) {
-    return <AddExpenseScreen type={addType} onClose={() => setAddType(null)} />
-  }
+  if (addType) return <AddExpenseScreen type={addType} onClose={() => setAddType(null)} />
+  if (showAI)  return <AssistantScreen onBack={() => { setShowAI(false); setSelectedTab(0) }} />
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
@@ -173,7 +174,10 @@ export default function HomeScreen() {
           padding: '3px 16px 3px 4px',
         }}>
           {TABS.map((t, i) => (
-            <TabBtn key={i} tab={t} active={selectedTab === i} onClick={() => setSelectedTab(i)} />
+            <TabBtn key={i} tab={t} active={selectedTab === i} onClick={() => {
+              setSelectedTab(i)
+              if (i === 1) setShowAI(true)
+            }} />
           ))}
         </div>
 
