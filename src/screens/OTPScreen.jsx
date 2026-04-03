@@ -49,7 +49,7 @@ export default function OTPScreen({ phone, onBack, onComplete }) {
       </div>
 
       <div style={{ paddingTop: 'calc(var(--safe-top) + 135px)', paddingLeft: '24px', paddingRight: '24px', flex: 1 }}>
-        <div style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.1, color: '#fff', marginBottom: '16px' }}>
+        <div style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: '40px', fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.1, color: '#fff', marginBottom: '16px' }}>
           Tasdiqlash<br />kodini kiriting
         </div>
         <div style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', letterSpacing: '-0.43px', lineHeight: 1.5, maxWidth: '312px', marginBottom: '32px' }}>

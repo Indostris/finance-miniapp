@@ -32,6 +32,7 @@ const styles = {
     overflow: 'hidden',
   },
   dimLabel: {
+    fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
     fontSize: '40px', fontWeight: 700,
     color: 'rgba(255,255,255,0.20)',
     lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden',
@@ -48,6 +49,7 @@ const styles = {
     transition: 'opacity 0.28s, transform 0.28s',
   }),
   activeLabel: {
+    fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
     fontSize: '48px', fontWeight: 900,
     color: '#fff', lineHeight: 1.1,
     whiteSpace: 'nowrap',
