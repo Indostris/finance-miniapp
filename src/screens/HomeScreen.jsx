@@ -108,7 +108,7 @@ export default function HomeScreen() {
               Budget: 16,000,000 sums • You spent:
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
-              <span style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff' }}>
+              <span data-line="111" style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff' }}>
                 12,643,000
               </span>
               <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px' }}>sums</span>
@@ -172,7 +172,7 @@ export default function HomeScreen() {
         padding: 'calc(var(--safe-top) + 62px) 16px 10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
-          <span style={{
+          <span data-line="175" style={{
             fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
             fontSize: 48, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '49px', color: '#fff',
           }}>Home</span>
