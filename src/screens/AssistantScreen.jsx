@@ -239,7 +239,7 @@ export default function AssistantScreen({ onBack }) {
   const lastAI = [...messages].reverse().find(m => m.role === 'ai' && m.items?.length > 0)
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/AssistantScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Top Nav ──────────────────────────────────────────────────────────── */}
       <div style={{
@@ -251,9 +251,13 @@ export default function AssistantScreen({ onBack }) {
       }}>
         <button onClick={onBack} style={{
           width: 60, height: 45, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', color: '#fff',
-          fontSize: 16, cursor: 'pointer',
-        }}>‹</button>
+          background: '#1C1C1E', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
 
         <span style={{ fontSize: 17, color: '#fff', letterSpacing: '-0.43px' }}>New chat</span>
 
@@ -523,10 +527,14 @@ function EditItemScreen({ item, onBack }) {
         height: 'calc(var(--safe-top) + 62px)', flexShrink: 0,
       }}>
         <button onClick={onBack} style={{
-          width: 44, height: 44, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', color: '#fff',
-          fontSize: 18, cursor: 'pointer',
-        }}>‹</button>
+          width: 60, height: 45, borderRadius: 999,
+          background: '#1C1C1E', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
 
         {/* Type switcher */}
         <div style={{ display: 'flex', background: '#1C1C1E', borderRadius: 999, padding: 4, gap: 2 }}>

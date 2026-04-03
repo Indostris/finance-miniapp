@@ -34,7 +34,7 @@ export default function OTPScreen({ phone, onBack, onComplete }) {
   const g2 = code.slice(3, 6)
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/OTPScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
       <input
         ref={inputRef}
         type="tel"

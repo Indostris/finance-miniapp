@@ -86,7 +86,7 @@ export default function HomeScreen() {
   if (showAI)  return <AssistantScreen onBack={() => { setShowAI(false); setSelectedTab(0) }} />
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
+    <div data-file="src/screens/HomeScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
 
       {/* Blue gradient background */}
       <div style={{
@@ -118,7 +118,7 @@ export default function HomeScreen() {
           {/* CTA Buttons */}
           <div style={{ display: 'flex', gap: 8, padding: '0 16px 24px' }}>
             <CTAButton title="Add manually" blue={false} onClick={() => setAddType('Expense')} />
-            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => setAddType('Expense')} />
+            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
           </div>
 
           {/* Carousel */}

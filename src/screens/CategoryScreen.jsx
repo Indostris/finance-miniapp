@@ -60,7 +60,7 @@ export default function CategoryScreen({ onBack, onContinue }) {
   }
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/CategoryScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
       <div style={{ position: 'absolute', top: 'calc(var(--safe-top) + 65px)', left: 24, zIndex: 2 }}>
         <BackButton onClick={onBack} />

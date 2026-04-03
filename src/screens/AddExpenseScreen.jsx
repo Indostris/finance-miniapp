@@ -60,7 +60,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
   }
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/AddExpenseScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Top progressive blur ── */}
       <div style={{
@@ -91,15 +91,9 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
             flexShrink: 0,
           }}
         >
-          <span style={{
-            fontFamily: "'SF Pro Symbols', -apple-system, sans-serif",
-            fontSize: 14, color: '#fff',
-            display: 'inline-block',
-            transform: 'rotate(-90deg)',
-            fontFeatureSettings: "'ss16' 1",
-            lineHeight: '30px',
-            mixBlendMode: 'plus-lighter',
-          }}>{'\u{100188}'}</span>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
         </button>
 
         {/* Type switcher — 3 icons in pill */}
