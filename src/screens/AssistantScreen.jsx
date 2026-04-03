@@ -1,53 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 
-// ── Mock AI parser ────────────────────────────────────────────────────────────
-// Replace with real API call (Claude / OpenAI) in production
+const API = 'https://accompanied-blind-infants-household.trycloudflare.com'
 
 const CATEGORY_META = {
-  food:        { label: 'Meal',        color: '#6155F5', icon: '🍔' },
-  transport:   { label: 'Transport',   color: '#34C759', icon: '🚗' },
-  grocery:     { label: 'Grocery',     color: '#FF3830', icon: '🛒' },
-  home:        { label: 'Home',        color: '#0088FF', icon: '🏠' },
-  clothing:    { label: 'Clothing',    color: '#FF9500', icon: '👕' },
-  entertainment: { label: 'Fun',       color: '#FF2D55', icon: '🎮' },
-  other:       { label: 'Other',       color: '#8E8E93', icon: '⋯'  },
+  food:          { label: 'Meal',          color: '#6155F5', icon: '🍔' },
+  transport:     { label: 'Transport',     color: '#34C759', icon: '🚗' },
+  grocery:       { label: 'Grocery',       color: '#FF3830', icon: '🛒' },
+  home:          { label: 'Home',          color: '#0088FF', icon: '🏠' },
+  clothing:      { label: 'Clothing',      color: '#FF9500', icon: '👕' },
+  entertainment: { label: 'Fun',           color: '#FF2D55', icon: '🎮' },
+  shopping:      { label: 'Shopping',      color: '#FF9500', icon: '🛍️' },
+  health:        { label: 'Health',        color: '#30D158', icon: '💊' },
+  education:     { label: 'Education',     color: '#0088FF', icon: '📚' },
+  utilities:     { label: 'Utilities',     color: '#636366', icon: '💡' },
+  other:         { label: 'Other',         color: '#8E8E93', icon: '⋯'  },
 }
 
-function mockParse(text) {
-  const t = text.toLowerCase()
-  const results = []
-  const patterns = [
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oshga|ovqatga|taoml?|meal|food|restoran|cafe|kafe)/i, cat: 'food' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(taksi|taxi|avtobus|metro|transport|yo'l)/i,           cat: 'transport' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oziq-ovqat|bozor|supermarket|grocery)/i,              cat: 'grocery' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(uy|home|kvartira|kommunal)/i,                         cat: 'home' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(kiyim|clothing|magazin)/i,                            cat: 'clothing' },
-  ]
-  // Try multi-expense "X oshga, Y ga, Z ga" pattern
-  const parts = text.split(/,|;|\bva\b/)
-  parts.forEach(part => {
-    const amtMatch = part.match(/(\d[\d\s]{0,9})/)
-    if (!amtMatch) return
-    const amount = parseInt(amtMatch[1].replace(/\s/g, ''), 10)
-    if (isNaN(amount) || amount <= 0) return
-    let matched = false
-    for (const { re, cat } of patterns) {
-      if (re.test(part)) {
-        results.push({ id: Date.now() + Math.random(), amount, cat, account: 'TBC Salom' })
-        matched = true
-        break
-      }
-    }
-    if (!matched) results.push({ id: Date.now() + Math.random(), amount, cat: 'other', account: 'TBC Salom' })
-  })
-  if (results.length === 0 && /\d/.test(text)) {
-    const amtMatch = text.match(/(\d[\d\s]{0,9})/)
-    if (amtMatch) results.push({ id: Date.now(), amount: parseInt(amtMatch[1].replace(/\s/g,''),10), cat: 'other', account: 'TBC Salom' })
-  }
-  return results
-}
-
-// ── AI sparkle gradient avatar ────────────────────────────────────────────────
 const AIAvatar = () => (
   <div style={{
     width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
@@ -57,7 +25,6 @@ const AIAvatar = () => (
   }}>✦</div>
 )
 
-// ── Typing dots animation ─────────────────────────────────────────────────────
 const TypingDots = () => {
   const [dot, setDot] = useState(0)
   useEffect(() => {
@@ -68,20 +35,17 @@ const TypingDots = () => {
     <span style={{ letterSpacing: 1 }}>
       {'Aniqlamoqdaman' + '.'.repeat(dot)}
     </span>
-  )
-}
+  )jikol.olp;
+}['iuyji']
 
-// ── Waveform bars animation (recording) ──────────────────────────────────────
-const Waveform = () => {
-  const bars = 28
-  return (
-    <div style={{ display: 'flex', gap: 3, alignItems: 'center', height: 40 }}>
-      {Array.from({ length: bars }, (_, i) => (
-        <WaveBar key={i} delay={i * 60} />
-      ))}
-    </div>
-  )
-}
+const Waveform = () => (
+  <div style={{ display: 'flex', gap: 3, alignItems: 'center', height: 40 }}>
+    {Array.from({ length: 28 }, (_, i) => (
+      <WaveBar key={i} delay={i * 60} />
+    ))}
+  </div>
+)
+
 const WaveBar = ({ delay }) => {
   const [h, setH] = useState(4)
   useEffect(() => {
@@ -97,7 +61,6 @@ const WaveBar = ({ delay }) => {
   )
 }
 
-// ── Category icon ─────────────────────────────────────────────────────────────
 const CatIcon = ({ cat }) => {
   const meta = CATEGORY_META[cat] || CATEGORY_META.other
   return (
@@ -115,33 +78,41 @@ function formatAmt(n) {
   return n.toLocaleString('ru').replace(/,/g, ' ')
 }
 
-// ── Main screen ───────────────────────────────────────────────────────────────
-
 export default function AssistantScreen({ onBack }) {
-  const [uiState,    setUiState]    = useState('empty')   // empty | chat | thinking | result
-  const [inputText,  setInputText]  = useState('')
-  const [recording,  setRecording]  = useState(false)
-  const [messages,   setMessages]   = useState([])        // {role:'user'|'ai', text, items}
-  const [editItem,   setEditItem]   = useState(null)
-  const scrollRef = useRef(null)
-  const inputRef  = useRef(null)
-  const recogRef  = useRef(null)
+  const [uiState,   setUiState]   = useState('empty')
+  const [inputText, setInputText] = useState('')
+  const [recording, setRecording] = useState(false)
+  const [messages,  setMessages]  = useState([])
+  const [editItem,  setEditItem]  = useState(null)
+  const scrollRef        = useRef(null)
+  const inputRef         = useRef(null)
+  const mediaRecorderRef = useRef(null)
+  const audioChunksRef   = useRef([])
 
-  // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, uiState])
 
-  // ── Send message ────────────────────────────────────────────────────────────
-  const send = useCallback((text) => {
+  const send = useCallback(async (text) => {
     if (!text.trim()) return
     const userMsg = { id: Date.now(), role: 'user', text: text.trim() }
     setMessages(prev => [...prev, userMsg])
     setInputText('')
     setUiState('thinking')
 
-    setTimeout(() => {
-      const items = mockParse(text)
+    try {
+      const response = await fetch(`${API}/text_separate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.trim() })
+      })
+      const data = await response.json()
+      const items = (data.result ?? []).map(item => ({
+        ...item,
+        id: Date.now() + Math.random(),
+        cat: item.category,
+      }))
+
       const aiMsg = {
         id: Date.now() + 1,
         role: 'ai',
@@ -152,76 +123,115 @@ export default function AssistantScreen({ onBack }) {
       }
       setMessages(prev => [...prev, aiMsg])
       setUiState('result')
-    }, 1600)
+    } catch (err) {
+      console.error('API error:', err)
+      setUiState('result')
+    }
   }, [])
 
-  // ── Voice recording ─────────────────────────────────────────────────────────
-  const startRecording = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      alert('Браузер не поддерживает голосовой ввод. Используйте Chrome.')
-      return
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop())
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const formData = new FormData()
+        formData.append('file', audioBlob, 'recording.webm')
+        setUiState('thinking')
+
+        try {
+          const transcribeRes = await fetch(`${API}/transcribe_audio`, {
+            method: 'POST',
+            body: formData
+          })
+          const transcribeData = await transcribeRes.json()
+          const transcribedText = transcribeData.result
+
+          if (!transcribedText) {
+            setUiState('idle')
+            return
+          }
+
+          const userMsg = { id: Date.now(), role: 'user', text: transcribedText }
+          setMessages(prev => [...prev, userMsg])
+
+          const extractRes = await fetch(`${API}/text_separate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: transcribedText })
+          })
+          const extractData = await extractRes.json()
+          const items = (extractData.result ?? []).map(item => ({
+            ...item,
+            id: Date.now() + Math.random(),
+            cat: item.category,
+          }))
+
+          const aiMsg = {
+            id: Date.now() + 1,
+            role: 'ai',
+            text: items.length > 0
+              ? `Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko'ring`
+              : `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
+            items,
+          }
+          setMessages(prev => [...prev, aiMsg])
+          setUiState('result')
+
+        } catch (err) {
+          console.error('Error:', err)
+          setUiState('idle')
+        }
+      }
+
+      mediaRecorder.start()
+      mediaRecorderRef.current = mediaRecorder
+      setRecording(true)
+    } catch (err) {
+      console.error('Microphone error:', err)
+      alert('Mikrofonga ruxsat berilmadi.')
     }
-    const recog = new SpeechRecognition()
-    recog.lang = 'uz-UZ'
-    recog.interimResults = true
-    recog.continuous = false
-    recog.onresult = (e) => {
-      const transcript = Array.from(e.results).map(r => r[0].transcript).join('')
-      setInputText(transcript)
-    }
-    recog.onend = () => {
-      setRecording(false)
-      recogRef.current = null
-    }
-    recog.onerror = () => {
-      setRecording(false)
-      recogRef.current = null
-    }
-    recog.start()
-    recogRef.current = recog
-    setRecording(true)
   }, [])
 
   const stopRecording = useCallback(() => {
-    recogRef.current?.stop()
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+    }
     setRecording(false)
   }, [])
 
   const handleMicPress = useCallback(() => {
     if (recording) {
       stopRecording()
-      setTimeout(() => {
-        if (inputText.trim()) send(inputText)
-      }, 300)
     } else {
       startRecording()
     }
-  }, [recording, inputText, send, startRecording, stopRecording])
+  }, [recording, startRecording, stopRecording])
 
-  // ── Add transactions ────────────────────────────────────────────────────────
-  const addAll = useCallback((items) => {
-    // In production: save to DB / state
+  const addAll = useCallback(() => {
     setMessages(prev => prev.map(m =>
       m.role === 'ai' && m.items ? { ...m, added: true } : m
     ))
   }, [])
 
-  // ── If editing a single item ────────────────────────────────────────────────
   if (editItem) {
     return <EditItemScreen item={editItem} onBack={() => setEditItem(null)} />
   }
 
   const isEmpty = uiState === 'empty'
   const isThinking = uiState === 'thinking'
-  const lastAI = [...messages].reverse().find(m => m.role === 'ai' && m.items?.length > 0)
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Top Nav ──────────────────────────────────────────────────────────── */}
       <div style={{
-        paddingTop: 'calc(var(--safe-top) + 10px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', height: 'calc(var(--safe-top) + 62px)',
         paddingTop: 'var(--safe-top)', flexShrink: 0,
@@ -242,9 +252,7 @@ export default function AssistantScreen({ onBack }) {
         }}>≡</button>
       </div>
 
-      {/* ── Content area ─────────────────────────────────────────────────────── */}
       {isEmpty ? (
-        /* EMPTY STATE */
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', gap: 12 }}>
           <div style={{ fontSize: 60 }}>✦</div>
           <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.45px', color: '#fff', textAlign: 'center' }}>
@@ -263,12 +271,10 @@ export default function AssistantScreen({ onBack }) {
           </button>
         </div>
       ) : (
-        /* CHAT MESSAGES */
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 0, scrollbarWidth: 'none' }}>
-          {messages.map((msg, i) => (
+          {messages.map((msg) => (
             <div key={msg.id}>
               {msg.role === 'user' ? (
-                /* User bubble — white, right */
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, paddingLeft: 64 }}>
                   <div style={{
                     background: '#fff', color: '#000',
@@ -277,16 +283,13 @@ export default function AssistantScreen({ onBack }) {
                     position: 'relative',
                   }}>
                     {msg.text}
-                    {/* tail */}
                     <div style={{ position: 'absolute', bottom: -1, right: -4, width: 16, height: 17, overflow: 'hidden' }}>
                       <svg viewBox="0 0 16 17" width="16" height="17"><path d="M16 17 Q0 17 0 0 L16 0Z" fill="white"/></svg>
                     </div>
                   </div>
                 </div>
               ) : (
-                /* AI message */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16, paddingRight: 64 }}>
-                  {/* AI bubble */}
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                     <AIAvatar />
                     <div style={{
@@ -296,14 +299,12 @@ export default function AssistantScreen({ onBack }) {
                       position: 'relative',
                     }}>
                       {msg.text}
-                      {/* tail */}
                       <div style={{ position: 'absolute', bottom: -1, left: -4, width: 16, height: 17, overflow: 'hidden' }}>
                         <svg viewBox="0 0 16 17" width="16" height="17"><path d="M0 17 Q16 17 16 0 L0 0Z" fill="#1C1C1E"/></svg>
                       </div>
                     </div>
                   </div>
 
-                  {/* Expense rows */}
                   {msg.items?.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
                       {msg.items.map(item => {
@@ -327,7 +328,6 @@ export default function AssistantScreen({ onBack }) {
                                 </div>
                                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{item.account}</div>
                               </div>
-                              {/* Edit pencil icon */}
                               <div style={{
                                 width: 28, height: 28, borderRadius: 8,
                                 background: 'rgba(118,118,128,0.24)',
@@ -339,9 +339,8 @@ export default function AssistantScreen({ onBack }) {
                         )
                       })}
 
-                      {/* Add all button */}
                       {!msg.added && (
-                        <button onClick={() => addAll(msg.items)} style={{
+                        <button onClick={() => addAll()} style={{
                           width: '100%', height: 60, borderRadius: 999,
                           background: '#0088FF', border: 'none', color: '#fff',
                           fontSize: 17, fontWeight: 500, cursor: 'pointer',
@@ -365,7 +364,6 @@ export default function AssistantScreen({ onBack }) {
             </div>
           ))}
 
-          {/* Thinking state */}
           {isThinking && (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, paddingRight: 64 }}>
               <AIAvatar />
@@ -385,15 +383,13 @@ export default function AssistantScreen({ onBack }) {
         </div>
       )}
 
-      {/* ── Write Bar ────────────────────────────────────────────────────────── */}
       <div style={{
         flexShrink: 0, display: 'flex', alignItems: 'flex-end', gap: 6,
         padding: '4px 16px',
         paddingBottom: 'calc(var(--safe-bottom) + 8px)',
       }}>
-        {/* Attach/Mic button */}
         <button
-          onPointerDown={handleMicPress}
+          onClick={handleMicPress}
           style={{
             width: 42, height: 42, borderRadius: 999, flexShrink: 0,
             background: recording ? '#FF3B30' : '#1C1C1E',
@@ -406,14 +402,12 @@ export default function AssistantScreen({ onBack }) {
           {recording ? '◼' : '+'}
         </button>
 
-        {/* Input field */}
         <div style={{
           flex: 1, minHeight: 42, borderRadius: 21,
           background: '#1C1C1E', display: 'flex', alignItems: 'center',
           padding: '3px',
         }}>
           {recording ? (
-            /* Waveform while recording */
             <div style={{ flex: 1, padding: '0 10px', display: 'flex', alignItems: 'center', height: 36 }}>
               <Waveform />
             </div>
@@ -431,12 +425,10 @@ export default function AssistantScreen({ onBack }) {
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: '#fff', fontSize: 17, letterSpacing: '-0.43px',
                 padding: '6px 10px 8px',
-                '::placeholder': { color: 'rgba(235,235,245,0.3)' },
               }}
             />
           )}
 
-          {/* Send or mic icon */}
           <button
             onClick={() => inputText.trim() ? send(inputText) : handleMicPress()}
             style={{
@@ -454,8 +446,6 @@ export default function AssistantScreen({ onBack }) {
     </div>
   )
 }
-
-// ── Edit single expense item ───────────────────────────────────────────────────
 
 const NUMPAD_ROWS = [
   ['1','2','3','+'],
@@ -477,7 +467,6 @@ function EditItemScreen({ item, onBack }) {
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
-      {/* Toolbar */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', paddingTop: 'var(--safe-top)',
@@ -489,7 +478,6 @@ function EditItemScreen({ item, onBack }) {
           fontSize: 18, cursor: 'pointer',
         }}>‹</button>
 
-        {/* Type switcher */}
         <div style={{ display: 'flex', background: '#1C1C1E', borderRadius: 999, padding: 4, gap: 2 }}>
           {['+','⇄','↓','→'].map((ic,i) => (
             <div key={i} style={{
@@ -509,7 +497,6 @@ function EditItemScreen({ item, onBack }) {
         }}>•••</button>
       </div>
 
-      {/* Amount display */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>New expense</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -520,9 +507,7 @@ function EditItemScreen({ item, onBack }) {
         </div>
       </div>
 
-      {/* Bottom panel */}
       <div style={{ padding: '0 16px', paddingBottom: 'calc(var(--safe-bottom) + 32px)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {/* Chips */}
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
           {[['📅','Today'],['🍴', meta.label],['💳','TBC']].map(([ic,lb]) => (
             <button key={lb} style={{
@@ -533,14 +518,12 @@ function EditItemScreen({ item, onBack }) {
           ))}
         </div>
 
-        {/* Note */}
         <div style={{
           height: 50, borderRadius: 16, background: 'rgba(118,118,128,0.24)',
           display: 'flex', alignItems: 'center', padding: '0 16px',
           color: 'rgba(255,255,255,0.6)', fontSize: 17,
         }}>Note</div>
 
-        {/* Numpad */}
         {NUMPAD_ROWS.map((row, ri) => (
           <div key={ri} style={{ display: 'flex', gap: 2 }}>
             {row.map(k => {
@@ -556,7 +539,6 @@ function EditItemScreen({ item, onBack }) {
           </div>
         ))}
 
-        {/* Save */}
         <button onClick={onBack} style={{
           height: 60, borderRadius: 999, background: '#fff',
           border: 'none', color: '#1A1B1B', fontSize: 17,

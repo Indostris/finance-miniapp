@@ -1,9 +1,9 @@
-// Simple bot server for handling /start command
-// Run: node bot.js
-// Or deploy alongside the webapp
+import { config } from 'dotenv'
+config()
 
-const BOT_TOKEN = process.env.BOT_TOKEN || '8699075346:AAHpJdywJgql5DI6qT5tYcSy38y4FCWvk60'
-const APP_URL   = process.env.APP_URL   || 'https://webapp-blond-theta.vercel.app'
+
+const BOT_TOKEN = process.env.BOT_TOKEN
+const APP_URL   = process.env.APP_URL
 
 const TG_API = `https://api.telegram.org/bot${BOT_TOKEN}`
 
