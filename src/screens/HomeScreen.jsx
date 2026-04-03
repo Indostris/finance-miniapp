@@ -174,7 +174,7 @@ export default function HomeScreen() {
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
           <span style={{
             fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
-            fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff',
+            fontSize: 45, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '46px', color: '#fff',
           }}>Home</span>
           <div style={{ flex: 1 }} />
           {/* Toolbar button group */}
