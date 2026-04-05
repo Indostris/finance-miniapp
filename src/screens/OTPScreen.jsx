@@ -92,6 +92,7 @@ function OTPBox({ digits, isActive, cursorPos }) {
         const isCur = isActive && cursorPos === i
         return (
           <span key={i} style={{
+            fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
             fontSize: '52px', fontWeight: 600, letterSpacing: '-0.6px',
             color: empty ? `rgba(255,255,255,${isCur ? 0.45 : 0.18})` : '#fff',
             fontVariantNumeric: 'tabular-nums',
