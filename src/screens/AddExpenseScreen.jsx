@@ -9,15 +9,15 @@ import IC_CAT_HOUSE     from '../assets/icons/categories/house.svg'
 import IC_CAT_GAMING    from '../assets/icons/categories/gaming.svg'
 
 // ── Local assets ─────────────────────────────────────────────────────────────
-import IC_TYPE_ADD from '../assets/icons/ui/type-add.png'
-import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.png'
-import IC_TYPE_INC from '../assets/icons/ui/type-income.png'
-import IC_MORE     from '../assets/icons/ui/more.png'
-import IC_CALENDAR from '../assets/icons/ui/calendar.png'
-import IC_CARD     from '../assets/icons/ui/card.png'
-import IC_CHEVRON  from '../assets/icons/ui/chevron.png'
-import IC_DELETE   from '../assets/icons/ui/delete.png'
-import IC_BACK     from '../assets/icons/ui/back.png'
+import IC_TYPE_ADD from '../assets/icons/ui/type-add.svg'
+import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.svg'
+import IC_TYPE_INC from '../assets/icons/ui/type-income.svg'
+import IC_MORE     from '../assets/icons/ui/more.svg'
+import IC_CALENDAR from '../assets/icons/ui/calendar.svg'
+import IC_CARD     from '../assets/icons/ui/card.svg'
+import IC_CHEVRON  from '../assets/icons/ui/chevron.svg'
+import IC_DELETE   from '../assets/icons/ui/delete.svg'
+import IC_BACK     from '../assets/icons/ui/back.svg'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [

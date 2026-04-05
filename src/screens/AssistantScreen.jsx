@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import IC_BACK from '../assets/icons/ui/back.png'
+import IC_BACK from '../assets/icons/ui/back.svg'
 
 // ── Mock AI parser ────────────────────────────────────────────────────────────
 // Replace with real API call (Claude / OpenAI) in production
