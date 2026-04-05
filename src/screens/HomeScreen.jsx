@@ -165,6 +165,15 @@ export default function HomeScreen({ userId }) {
             </div>
           </div>
 
+          {/* CTA Buttons */}
+          <div style={{ display: 'flex', gap: 8, padding: '0 16px 24px' }}>
+            <CTAButton title="Add manually" blue={false} onClick={() => setAddType('Expense')} />
+            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
+          </div>
+
+          {/* Spending Limits Banners */}
+          <SpendingLimitsBannerCarousel />
+
           {/* Account switcher */}
           <div style={{ display: 'flex', gap: 4, padding: '0 16px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
             {/* All */}
@@ -208,15 +217,6 @@ export default function HomeScreen({ userId }) {
               <span>+</span><span>Add card</span>
             </button>
           </div>
-
-          {/* CTA Buttons */}
-          <div style={{ display: 'flex', gap: 8, padding: '0 16px 24px' }}>
-            <CTAButton title="Add manually" blue={false} onClick={() => setAddType('Expense')} />
-            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
-          </div>
-
-          {/* Spending Limits Banners */}
-          <SpendingLimitsBannerCarousel />
 
           {/* Recent Transactions */}
           <SectionHeader title="Recent transactions" />
