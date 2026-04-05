@@ -367,11 +367,11 @@ function TabBtn({ tab, active, onClick }) {
         position: 'relative',
       }}
     >
-      <div style={{ height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 28, height: 28, flexShrink: 0, overflow: 'hidden' }}>
         <img
           src={tab.icon} alt={tab.label}
           style={{
-            width: 28, height: 28, objectFit: 'contain',
+            display: 'block', width: '100%', height: '100%', objectFit: 'contain',
             mixBlendMode: active ? 'normal' : 'plus-lighter',
             opacity: active ? 1 : 0.75,
           }}
