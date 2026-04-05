@@ -33,7 +33,7 @@ export default function PhoneScreen({ onBack, onNext }) {
   const masked = formatMasked(digits)
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/PhoneScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
       {/* Hidden real input */}
       <input
         ref={inputRef}

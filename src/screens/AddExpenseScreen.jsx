@@ -1,12 +1,23 @@
 import React, { useState } from 'react'
+import IC_CAT_OTHER    from '../assets/icons/categories/other.svg'
+import IC_CAT_GROCERY  from '../assets/icons/categories/grocery.svg'
+import IC_CAT_TRANSPORT from '../assets/icons/categories/transport.svg'
+import IC_CAT_CLOTHING  from '../assets/icons/categories/clothing.svg'
+import IC_CAT_MEAL      from '../assets/icons/categories/meal.svg'
+import IC_CAT_WEB       from '../assets/icons/categories/web.svg'
+import IC_CAT_HOUSE     from '../assets/icons/categories/house.svg'
+import IC_CAT_GAMING    from '../assets/icons/categories/gaming.svg'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
-
-// ── Figma SVG assets ─────────────────────────────────────────────────────────
-import {
-  IC_TYPE_ADD, IC_TYPE_TRN, IC_TYPE_INC, IC_MORE,
-  IC_CALENDAR, IC_DOTS, IC_CARD, IC_CHEVRON, IC_DELETE,
-} from '../icons'
+// ── Local assets ─────────────────────────────────────────────────────────────
+import IC_TYPE_ADD from '../assets/icons/ui/type-add.svg'
+import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.svg'
+import IC_TYPE_INC from '../assets/icons/ui/type-income.svg'
+import IC_MORE     from '../assets/icons/ui/more.svg'
+import IC_CALENDAR from '../assets/icons/ui/calendar.svg'
+import IC_CARD     from '../assets/icons/ui/card.svg'
+import IC_CHEVRON  from '../assets/icons/ui/chevron.svg'
+import IC_DELETE   from '../assets/icons/ui/delete.svg'
+import IC_BACK     from '../assets/icons/ui/back.svg'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
@@ -15,6 +26,17 @@ const NAV_TYPES = [
   { key: 'Income',   icon: IC_TYPE_INC },
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
+
+const CATEGORIES = [
+  { key: 'other',    label: 'Other',     icon: IC_CAT_OTHER    },
+  { key: 'grocery',  label: 'Grocery',   icon: IC_CAT_GROCERY  },
+  { key: 'transport',label: 'Transport', icon: IC_CAT_TRANSPORT},
+  { key: 'clothing', label: 'Clothing',  icon: IC_CAT_CLOTHING },
+  { key: 'meal',     label: 'Meal',      icon: IC_CAT_MEAL     },
+  { key: 'web',      label: 'Web',       icon: IC_CAT_WEB      },
+  { key: 'home',     label: 'Home',      icon: IC_CAT_HOUSE    },
+  { key: 'gaming',   label: 'Gaming',    icon: IC_CAT_GAMING   },
+]
 
 // [label, isPill]
 const ROWS = [
@@ -31,15 +53,14 @@ function formatAmount(digits) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function AddExpenseScreen({ type: initType, userId, accounts = [], onClose }) {
-  const [type,      setType]      = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
-  const [digits,    setDigits]    = useState('')
-  const [note,      setNote]      = useState('')
-  const [accountIdx, setAccountIdx] = useState(0)
-  const [submitting, setSubmitting] = useState(false)
+export default function AddExpenseScreen({ type: initType, onClose }) {
+  const [type,        setType]        = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
+  const [digits,      setDigits]      = useState('')
+  const [note,        setNote]        = useState('')
+  const [category,    setCategory]    = useState(CATEGORIES[0])
+  const [showPicker,  setShowPicker]  = useState(false)
 
-  const displayAmt   = formatAmount(digits)
-  const selectedAcc  = accounts[accountIdx] ?? null
+  const displayAmt = formatAmount(digits)
 
   function tap(label) {
     if (label === '⌫') {
@@ -53,40 +74,8 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
     }
   }
 
-  function cycleAccount() {
-    if (accounts.length > 1) setAccountIdx(i => (i + 1) % accounts.length)
-  }
-
-  async function handleAdd() {
-    const amount = parseInt(digits.replace(/,/g, '').replace(/\s/g, '') || '0', 10)
-    if (!amount) return
-
-    const body  = {
-      type:       type.toLowerCase(),
-      amount,
-      note:       note || null,
-      account_id: selectedAcc?.id ?? null,
-      source:     'manual',
-    }
-
-    setSubmitting(true)
-    try {
-      await fetch(`${API_BASE}/users/${userId}/transactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      onClose()
-    } catch (err) {
-      console.error(err)
-      setSubmitting(false)
-    }
-  }
-
-  const accountLabel = selectedAcc ? selectedAcc.name : 'No account'
-
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/AddExpenseScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Top progressive blur ── */}
       <div style={{
@@ -107,7 +96,6 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
         height: 'calc(var(--safe-top) + 62px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Back */}
         <button
           onClick={onClose}
           style={{
@@ -117,18 +105,11 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
             flexShrink: 0,
           }}
         >
-          <span style={{
-            fontFamily: "'SF Pro Symbols', -apple-system, sans-serif",
-            fontSize: 14, color: '#fff',
-            display: 'inline-block',
-            transform: 'rotate(-90deg)',
-            fontFeatureSettings: "'ss16' 1",
-            lineHeight: '30px',
-            mixBlendMode: 'plus-lighter',
-          }}>{'\u{100188}'}</span>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
         </button>
 
-        {/* Type switcher */}
         <div style={{
           background: '#1C1C1E', borderRadius: 999,
           padding: 4, display: 'flex', gap: 0, flexShrink: 0,
@@ -151,7 +132,6 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
           ))}
         </div>
 
-        {/* More */}
         <div style={{
           width: 60, height: 45, borderRadius: 999, overflow: 'hidden',
           flexShrink: 0, position: 'relative',
@@ -164,7 +144,7 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        padding: '120px 16px 0',
+        paddingTop: 120, padding: '120px 16px 0',
       }}>
         <div style={{
           fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -203,16 +183,26 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
 
         {/* Chips */}
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {/* Date chip — static */}
-          <ChipButton label="Today" icon={IC_CALENDAR} />
-          {/* Other chip — static */}
-          <ChipButton label="Other" icon={IC_DOTS} />
-          {/* Account chip — dynamic */}
-          <ChipButton
-            label={accountLabel}
-            icon={IC_CARD}
-            onClick={accounts.length > 1 ? cycleAccount : undefined}
-          />
+          {/* Date chip */}
+          <button style={chipStyle}>
+            <img src={IC_CALENDAR} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            Today
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
+
+          {/* Category chip — dynamic */}
+          <button onClick={() => setShowPicker(true)} style={chipStyle}>
+            <CategoryIconMini icon={category.icon} />
+            {category.label}
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
+
+          {/* Account chip */}
+          <button style={chipStyle}>
+            <img src={IC_CARD} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            Visa
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
         </div>
 
         {/* Note */}
@@ -246,43 +236,166 @@ export default function AddExpenseScreen({ type: initType, userId, accounts = []
 
         {/* Add button */}
         <button
-          onClick={handleAdd}
-          disabled={submitting || !digits}
+          onClick={onClose}
           style={{
             height: 60, borderRadius: 999, border: 'none',
-            background: digits ? '#fff' : 'rgba(255,255,255,0.15)',
-            color: digits ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
+            background: '#fff', color: '#1A1B1B',
             fontFamily: "'SF Pro', -apple-system, sans-serif",
-            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
-            cursor: digits ? 'pointer' : 'default',
-            opacity: submitting ? 0.6 : 1,
-            transition: 'background 0.2s, color 0.2s',
+            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
           }}
         >
-          {submitting ? 'Saving…' : `Add ${type.toLowerCase()}`}
+          Add {type.toLowerCase()}
         </button>
       </div>
+
+      {/* ── Category Picker overlay ── */}
+      {showPicker && (
+        <CategoryPicker
+          selected={category}
+          onSelect={cat => { setCategory(cat); setShowPicker(false) }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   )
 }
 
-// ── ChipButton ────────────────────────────────────────────────────────────────
-function ChipButton({ label, icon, onClick }) {
+// ── Shared chip style ─────────────────────────────────────────────────────────
+const chipStyle = {
+  display: 'flex', alignItems: 'center', gap: 4,
+  padding: '13px 16px', borderRadius: 999, flexShrink: 0,
+  background: 'rgba(118,118,128,0.24)', border: 'none', cursor: 'pointer',
+  fontFamily: "'SF Pro', -apple-system, sans-serif",
+  color: '#fff', fontSize: 17, fontWeight: 510,
+}
+
+// ── Category icons — SVGs are self-contained (bg + gradient + icon inside) ────
+function CategoryIconMini({ icon }) {
+  return <img src={icon} alt="" style={{ width: 28, height: 28, display: 'block', flexShrink: 0 }} />
+}
+
+function CategoryIconFull({ icon }) {
+  return <img src={icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
+}
+
+// ── Category Picker ───────────────────────────────────────────────────────────
+function CategoryPicker({ selected, onSelect, onClose }) {
+  const [pending, setPending] = useState(selected)
+
   return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '13px 16px', borderRadius: 999, flexShrink: 0,
-        background: 'rgba(118,118,128,0.24)', border: 'none', cursor: onClick ? 'pointer' : 'default',
-        fontFamily: "'SF Pro', -apple-system, sans-serif",
-        color: '#fff', fontSize: 17, fontWeight: 510,
-      }}
-    >
-      <img src={icon} alt={label} style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-      {label}
-      <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-    </button>
+    <div style={{
+      position: 'absolute', inset: 0, background: '#000',
+      display: 'flex', flexDirection: 'column', zIndex: 20,
+    }}>
+      {/* Toolbar */}
+      <div style={{
+        padding: 'calc(var(--safe-top) + 10px) 16px 0',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: 'calc(var(--safe-top) + 62px)', flexShrink: 0,
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            width: 60, height: 45, borderRadius: 999,
+            background: '#1C1C1E', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
+        <span style={{
+          fontFamily: "'SF Pro', -apple-system, sans-serif",
+          fontSize: 17, fontWeight: 590, color: '#fff', letterSpacing: '-0.43px',
+        }}>
+          Kategoriya
+        </span>
+        <div style={{ width: 60 }} />
+      </div>
+
+      {/* Category list card */}
+      <div style={{
+        flex: 1, overflowY: 'auto', padding: '16px 16px 0',
+        scrollbarWidth: 'none',
+      }}>
+        <div style={{ borderRadius: 20, overflow: 'hidden', background: '#1C1C1E' }}>
+          {CATEGORIES.map((cat, i) => (
+            <button
+              key={cat.key}
+              onClick={() => setPending(cat)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center',
+                gap: 12, padding: '12px 16px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <CategoryIconFull icon={cat.icon} />
+              <span style={{
+                flex: 1, textAlign: 'left',
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px',
+              }}>
+                {cat.label}
+              </span>
+              {pending.key === cat.key && (
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: '#0088FF', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                    <path d="M1 4L4.5 7.5L11 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
+
+          {/* Add category row */}
+          <button style={{
+            width: '100%', display: 'flex', alignItems: 'center',
+            gap: 12, padding: '12px 16px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+              background: 'rgba(0,136,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: 24, color: '#0088FF', lineHeight: 1 }}>+</span>
+            </div>
+            <span style={{
+              fontFamily: "'SF Pro', -apple-system, sans-serif",
+              fontSize: 17, fontWeight: 510, color: '#0088FF', letterSpacing: '-0.43px',
+            }}>
+              Add category
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Continue button */}
+      <div style={{
+        padding: '14px 16px',
+        paddingBottom: 'calc(14px + var(--safe-bottom))',
+        flexShrink: 0,
+      }}>
+        <button
+          onClick={() => onSelect(pending)}
+          style={{
+            width: '100%', height: 60, borderRadius: 999, border: 'none',
+            background: '#fff', color: '#1A1B1B',
+            fontFamily: "'SF Pro', -apple-system, sans-serif",
+            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    </div>
   )
 }
 

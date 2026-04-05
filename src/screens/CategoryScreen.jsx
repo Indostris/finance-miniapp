@@ -1,24 +1,29 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import BackButton from '../components/BackButton'
-import { CATEGORY_ICON_MAP } from '../categoryMeta'
+import icWeb      from '../assets/icons/categories/web.svg'
+import icMeal     from '../assets/icons/categories/meal.svg'
+import icHouse    from '../assets/icons/categories/house.svg'
+import icClothing from '../assets/icons/categories/clothing.svg'
+import icGrocery  from '../assets/icons/categories/grocery.svg'
+import icTransport from '../assets/icons/categories/transport.svg'
+import icGaming   from '../assets/icons/categories/gaming.svg'
+import icOther    from '../assets/icons/categories/other.svg'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const CATEGORIES = [
+  { id: 0, label: 'Online purchase', icon: icWeb       },
+  { id: 1, label: 'Eats',            icon: icMeal      },
+  { id: 2, label: 'Home',            icon: icHouse     },
+  { id: 3, label: 'Clothing',        icon: icClothing  },
+  { id: 4, label: 'Grocery',         icon: icGrocery   },
+  { id: 5, label: 'Transport',       icon: icTransport },
+  { id: 6, label: 'Entertainment',   icon: icGaming    },
+  { id: 7, label: 'Custom',          icon: icOther     },
+]
 
 const CHECK_CHAR = '\u{100185}'
 
 export default function CategoryScreen({ onBack, onContinue }) {
-  const [categories, setCategories] = useState([])
-  const [selected,   setSelected]   = useState(new Set())
-  const [loading,    setLoading]    = useState(true)
-  const [error,      setError]      = useState(null)
-
-  useEffect(() => {
-    fetch(`${API_BASE}/categories`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
-      .then(data => setCategories(data))
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+  const [selected, setSelected] = useState(new Set())
 
   function toggle(id) {
     setSelected(prev => {
@@ -29,7 +34,7 @@ export default function CategoryScreen({ onBack, onContinue }) {
   }
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/CategoryScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
       <div style={{ position: 'absolute', top: 'calc(var(--safe-top) + 65px)', left: 24, zIndex: 2 }}>
         <BackButton onClick={onBack} />
@@ -59,27 +64,16 @@ export default function CategoryScreen({ onBack, onContinue }) {
           Mos keladigan barcha variantlarni tanlang — kerakli toifalarni o'zimiz qo'shamiz
         </div>
 
-        {loading ? (
-          <div style={{ color: 'rgba(235,235,245,0.4)', fontSize: 15, textAlign: 'center', paddingTop: 32 }}>
-            Loading…
-          </div>
-        ) : error ? (
-          <div style={{ color: '#FF453A', fontSize: 14, textAlign: 'center', paddingTop: 32, lineHeight: '20px' }}>
-            Could not load categories.{'\n'}Check that the backend is running and VITE_API_URL is set.{'\n\n'}
-            <span style={{ color: 'rgba(235,235,245,0.4)', fontSize: 12 }}>{API_BASE}</span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
-            {categories.map(cat => (
-              <CategoryChip
-                key={cat.id}
-                cat={cat}
-                selected={selected.has(cat.id)}
-                onToggle={() => toggle(cat.id)}
-              />
-            ))}
-          </div>
-        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
+          {CATEGORIES.map(cat => (
+            <CategoryChip
+              key={cat.id}
+              cat={cat}
+              selected={selected.has(cat.id)}
+              onToggle={() => toggle(cat.id)}
+            />
+          ))}
+        </div>
 
         {selected.size > 0 && (
           <div style={{
@@ -99,35 +93,8 @@ export default function CategoryScreen({ onBack, onContinue }) {
   )
 }
 
-// ── Category icon — exact Figma structure ─────────────────────────────────────
-function CategoryIcon({ color, catKey }) {
-  const def = CATEGORY_ICON_MAP[catKey]
-  if (!def) {
-    return <div style={{ width: 40, height: 40, borderRadius: 12, background: color, flexShrink: 0 }} />
-  }
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 12,
-      background: color,
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute',
-        left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: def.iw, height: def.ih,
-        mixBlendMode: 'plus-lighter',
-      }}>
-        <img src={def.url} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  )
+function CategoryIcon({ icon }) {
+  return <img src={icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
 }
 
 function CategoryChip({ cat, selected, onToggle }) {
@@ -147,7 +114,7 @@ function CategoryChip({ cat, selected, onToggle }) {
         transition: 'opacity 0.12s',
       }}
     >
-      <CategoryIcon color={cat.color ?? '#8E8E93'} catKey={cat.key} />
+      <CategoryIcon icon={cat.icon} />
 
       <span style={{
         fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -156,7 +123,7 @@ function CategoryChip({ cat, selected, onToggle }) {
         color: '#fff', flex: 1,
         overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
       }}>
-        {cat.label ?? cat.key}
+        {cat.label}
       </span>
 
       <div style={{

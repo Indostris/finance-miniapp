@@ -1,65 +1,72 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
 import AssistantScreen  from './AssistantScreen'
-import { CATEGORY_ICON_MAP } from '../categoryMeta'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+// ── Local assets ──────────────────────────────────────────────────────────────
+import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
+import IC_CAT_GLOBE         from '../assets/icons/categories/web.svg'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
+import IC_CAT_TAXI          from '../assets/icons/categories/transport.svg'
+import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
+import IC_TAB_HOME      from '../assets/icons/tabs/home.svg'
+import IC_TAB_ASSISTANT from '../assets/icons/tabs/assistant.svg'
+import IC_TAB_BUDGET    from '../assets/icons/tabs/budget.svg'
+import IC_TAB_ANALYTICS from '../assets/icons/tabs/analytics.svg'
+import IC_FAB_PLUS      from '../assets/icons/ui/fab-plus.svg'
+import IC_PROFILE       from '../assets/icons/ui/profile.svg'
+import IC_SETTINGS      from '../assets/icons/ui/settings.svg'
 
-// ── Figma SVG assets ──────────────────────────────────────────────────────────
-import {
-  IC_TAB_HOME, IC_TAB_ASSISTANT, IC_TAB_BUDGET, IC_TAB_ANALYTICS,
-  IC_FAB_PLUS, IC_PROFILE, IC_SETTINGS,
-} from '../icons'
+// ── Category icon definitions (icon url + exact inner px from Figma) ──────────
+const CAT = {
+  Grocery:       { url: IC_CAT_GROCERY       },
+  Other:         { url: IC_CAT_OTHER         },
+  Taxi:          { url: IC_CAT_TAXI          },
+  Clothing:      { url: IC_CAT_CLOTHING      },
+  Entertainment: { url: IC_CAT_ENTERTAINMENT },
+  House:         { url: IC_CAT_HOUSE         },
+  Globe:         { url: IC_CAT_GLOBE         },
+}
 
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────────────────────
 const CARDS = [
   { id: 0, title: 'Add spending limits',  desc: 'Set limits for key categories. This helps you keep spending under control.' },
   { id: 1, title: 'Connect your bank',    desc: 'Link your bank account and let AI categorise transactions automatically.' },
 ]
 
-const TABS = [
-  { icon: IC_TAB_HOME,      iw: 27.984, ih: 24.645, label: 'Home'      },
-  { icon: IC_TAB_ASSISTANT, iw: 21.68,  ih: 26.73,  label: 'Assistant' },
-  { icon: IC_TAB_BUDGET,    iw: 23.355, ih: 21.574, label: 'Budget'    },
-  { icon: IC_TAB_ANALYTICS, iw: 23.906, ih: 23.895, label: 'Analytics' },
+const TX_GROUPS = [
+  { id: 0, date: 'Thu, Sep 12', total: '-480 000 sums', items: [
+    { id: 0, title: 'Groceries',  sub: 'TBC Salom', amount: '- 128 000', cat: 'Grocery', color: '#FF4244' },
+    { id: 1, title: 'Other',      sub: 'TBC Salom', amount: '-128 000',  cat: 'Other',   color: '#8E8E93' },
+  ]},
+  { id: 1, date: 'Thu, Sep 11', total: '-480 000 sums, +129 000 sums', items: [
+    { id: 0, title: 'Groceries',   sub: 'TBC Salom', amount: '-128 000', cat: 'Grocery', color: '#FF4244' },
+    { id: 1, title: 'Web service', sub: 'TBC Salom', amount: '128 000',  cat: 'Taxi',    color: '#30D158' },
+  ]},
 ]
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function fmt(n) {
-  return Math.round(Number(n)).toLocaleString('en-US')
-}
+const LIMITS = [
+  { id: 0, title: 'Clothing',      detail: '1 500 000 of 4 000 000 left', cat: 'Clothing',      color: '#FF9530', progress: 0.625 },
+  { id: 1, title: 'Entertainment', detail: '1 500 000 of 4 000 000 left', cat: 'Entertainment', color: '#FF375F', progress: 0.625 },
+  { id: 2, title: 'Housing',       detail: '1 500 000 of 4 000 000 left', cat: 'House',          color: '#0091FF', progress: 0.35  },
+  { id: 3, title: 'Taxi',          detail: '1 500 000 of 4 000 000 left', cat: 'Taxi',           color: '#30D158', progress: 0.18  },
+]
 
-function formatDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-}
+const BILLS = [
+  { id: 0, title: 'Housing',     sub: 'Billz • 30 March', amount: '28 000', cat: 'House', color: '#0091FF' },
+  { id: 1, title: 'Web service', sub: 'Billz • 30 March', amount: '28 000', cat: 'Globe', color: '#FF375F' },
+]
 
-function groupByDate(transactions) {
-  const map = new Map()
-  for (const tx of transactions) {
-    const key = tx.date
-    if (!map.has(key)) map.set(key, [])
-    map.get(key).push(tx)
-  }
-  return [...map.entries()].map(([date, items]) => ({ date, items }))
-}
-
-function groupTotal(items) {
-  const income  = items.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)
-  const expense = items.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
-  const parts   = []
-  if (expense) parts.push(`-${fmt(expense)} sums`)
-  if (income)  parts.push(`+${fmt(income)} sums`)
-  return parts.join(', ') || '0 sums'
-}
-
-function currentMonth() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
+const TABS = [
+  { icon: IC_TAB_HOME,      label: 'Home'      },
+  { icon: IC_TAB_ASSISTANT, label: 'Assistant' },
+  { icon: IC_TAB_BUDGET,    label: 'Budget'    },
+  { icon: IC_TAB_ANALYTICS, label: 'Analytics' },
+]
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export default function HomeScreen({ userId }) {
+export default function HomeScreen() {
   const [selectedTab, setSelectedTab] = useState(0)
   const [cardPage,    setCardPage]    = useState(0)
   const [showMenu,    setShowMenu]    = useState(false)
@@ -67,64 +74,16 @@ export default function HomeScreen({ userId }) {
   const [showAI,      setShowAI]      = useState(false)
   const carouselRef = useRef(null)
 
-  // API data
-  const [transactions, setTransactions] = useState([])
-  const [accounts,     setAccounts]     = useState([])
-  const [categories,   setCategories]   = useState([])
-
-  useEffect(() => {
-    if (!userId) return
-    Promise.all([
-      fetch(`${API_BASE}/users/${userId}/transactions`).then(r => r.json()),
-      fetch(`${API_BASE}/users/${userId}/accounts`).then(r => r.json()),
-      fetch(`${API_BASE}/categories`).then(r => r.json()),
-    ]).then(([txs, accs, cats]) => {
-      setTransactions(txs)
-      setAccounts(accs)
-      setCategories(cats)
-    }).catch(console.error)
-  }, [userId])
-
-  // Build lookup maps
-  const catById  = Object.fromEntries(categories.map(c => [c.id, c]))
-  const accById  = Object.fromEntries(accounts.map(a => [a.id, a]))
-
-  // Derived financial figures
-  const totalBalance = accounts.reduce((s, a) => s + Number(a.balance), 0)
-  const monthPrefix  = currentMonth()
-  const monthlyTxs   = transactions.filter(t => t.date?.startsWith(monthPrefix))
-  const monthlyIncome = monthlyTxs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)
-  const monthlySpent  = monthlyTxs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
-
-  // Group transactions by date
-  const txGroups = groupByDate(transactions)
-
   function handleScroll(e) {
     const el = e.currentTarget
     setCardPage(Math.round(el.scrollLeft / 318))
   }
 
-  function handleAddClose() {
-    // Re-fetch transactions after adding one
-    fetch(`${API_BASE}/users/${userId}/transactions`)
-      .then(r => r.json())
-      .then(setTransactions)
-      .catch(console.error)
-    setAddType(null)
-  }
-
-  if (addType) return (
-    <AddExpenseScreen
-      type={addType}
-      userId={userId}
-      accounts={accounts}
-      onClose={handleAddClose}
-    />
-  )
-  if (showAI) return <AssistantScreen onBack={() => { setShowAI(false); setSelectedTab(0) }} userId={userId} accounts={accounts} />
+  if (addType) return <AddExpenseScreen type={addType} onClose={() => setAddType(null)} />
+  if (showAI)  return <AssistantScreen onBack={() => { setShowAI(false); setSelectedTab(0) }} />
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
+    <div data-file="src/screens/HomeScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
 
       {/* Blue gradient background */}
       <div style={{
@@ -140,16 +99,14 @@ export default function HomeScreen({ userId }) {
           {/* Balance */}
           <div style={{ textAlign: 'center', padding: '0 66px 32px' }}>
             <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: '#fff', marginBottom: 2 }}>
-              Monthly income: {fmt(monthlyIncome)} sums
+              Monthli income: 24,000,000 sums
             </div>
             <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: 'rgba(235,235,245,0.6)', marginBottom: 8 }}>
-              {accounts.length > 0
-                ? `Balance: ${fmt(totalBalance)} sums • You spent:`
-                : 'You spent:'}
+              Budget: 16,000,000 sums • You spent:
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
-              <span style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff' }}>
-                {fmt(monthlySpent)}
+              <span data-line="111" style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff' }}>
+                12,643,000
               </span>
               <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px' }}>sums</span>
             </div>
@@ -158,7 +115,7 @@ export default function HomeScreen({ userId }) {
           {/* CTA Buttons */}
           <div style={{ display: 'flex', gap: 8, padding: '0 16px 24px' }}>
             <CTAButton title="Add manually" blue={false} onClick={() => setAddType('Expense')} />
-            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => setAddType('Expense')} />
+            <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
           </div>
 
           {/* Carousel */}
@@ -188,20 +145,19 @@ export default function HomeScreen({ userId }) {
           {/* Recent Transactions */}
           <SectionHeader title="Recent transactions" />
           <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {txGroups.length === 0 ? (
-              <div style={{ color: 'rgba(235,235,245,0.4)', fontSize: 15, textAlign: 'center', paddingTop: 8 }}>
-                No transactions yet
-              </div>
-            ) : (
-              txGroups.map(g => (
-                <TxGroup
-                  key={g.date}
-                  group={g}
-                  catById={catById}
-                  accById={accById}
-                />
-              ))
-            )}
+            {TX_GROUPS.map(g => <TxGroup key={g.id} group={g} />)}
+          </div>
+
+          {/* Limits */}
+          <SectionHeader title="Limits" />
+          <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {LIMITS.map(l => <LimitRow key={l.id} item={l} />)}
+          </div>
+
+          {/* Upcoming Bills */}
+          <SectionHeader title="Upcoming bills" />
+          <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {BILLS.map(b => <BillRow key={b.id} item={b} />)}
           </div>
         </div>
       </div>
@@ -209,14 +165,16 @@ export default function HomeScreen({ userId }) {
       {/* Top bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+        paddingTop: 'calc(var(--safe-top) + 62px)',
         padding: 'calc(var(--safe-top) + 62px) 16px 10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
-          <span style={{
+          <span data-line="175" style={{
             fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
-            fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff',
+            fontSize: 48, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '49px', color: '#fff',
           }}>Home</span>
           <div style={{ flex: 1 }} />
+          {/* Toolbar button group */}
           <div style={{
             display: 'flex', gap: 12, alignItems: 'center',
             padding: '0 4px', height: 44,
@@ -233,12 +191,7 @@ export default function HomeScreen({ userId }) {
       </div>
 
       {/* Action menu overlay */}
-      {showMenu && (
-        <ActionMenu
-          onClose={() => setShowMenu(false)}
-          onSelect={t => { setShowMenu(false); setTimeout(() => setAddType(t), 250) }}
-        />
-      )}
+      {showMenu && <ActionMenu onClose={() => setShowMenu(false)} onSelect={t => { setShowMenu(false); setTimeout(() => setAddType(t), 250) }} />}
 
       {/* Tab bar */}
       <div style={{
@@ -247,6 +200,7 @@ export default function HomeScreen({ userId }) {
         padding: '16px 25px',
         paddingBottom: 'calc(var(--safe-bottom) + 8px)',
       }}>
+        {/* Tabs pill */}
         <div style={{
           display: 'flex', flex: 1,
           background: 'rgba(28,28,30,0.85)', borderRadius: 999,
@@ -260,13 +214,14 @@ export default function HomeScreen({ userId }) {
           ))}
         </div>
 
+        {/* FAB */}
         <button
           onClick={() => setShowMenu(true)}
           style={{
             width: 60, height: 60, borderRadius: '50%', flexShrink: 0, marginLeft: 8,
             background: '#0091FF', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 10px 50px rgba(0,145,255,0.30), 0 4px 12px rgba(0,0,0,0.25)',
+            boxShadow: '0 4px 12px 0 rgba(0,0,0,0.25)',
           }}
         >
           <img src={IC_FAB_PLUS} alt="+" style={{ width: 25, height: 25, mixBlendMode: 'plus-lighter' }} />
@@ -276,33 +231,11 @@ export default function HomeScreen({ userId }) {
   )
 }
 
-// ── Category icon ─────────────────────────────────────────────────────────────
-function CategoryIcon({ catKey, color }) {
-  const def = CATEGORY_ICON_MAP[catKey]
-  if (!def) return <div style={{ width: 40, height: 40, borderRadius: 12, background: color ?? '#8E8E93', flexShrink: 0 }} />
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 12,
-      background: color ?? '#8E8E93',
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute',
-        left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: def.iw, height: def.ih,
-        mixBlendMode: 'plus-lighter',
-      }}>
-        <img src={def.url} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  )
+// ── Category icon — exact Figma structure ─────────────────────────────────────
+function CategoryIcon({ cat, color }) {
+  const def = CAT[cat]
+  if (!def) return <div style={{ width: 40, height: 40, borderRadius: 12, background: color, flexShrink: 0 }} />
+  return <img src={def.url} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -363,37 +296,60 @@ function SectionHeader({ title }) {
   )
 }
 
-function TxGroup({ group, catById, accById }) {
+function TxGroup({ group }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: 'rgba(235,235,245,0.6)' }}>
-        <span>{formatDate(group.date)}</span>
-        <span>{groupTotal(group.items)}</span>
+        <span>{group.date}</span><span>{group.total}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {group.items.map(tx => (
-          <TxRow key={tx.id} tx={tx} cat={catById[tx.category_id]} acc={accById[tx.account_id]} />
-        ))}
+        {group.items.map(tx => <TxRow key={tx.id} tx={tx} />)}
       </div>
     </div>
   )
 }
 
-function TxRow({ tx, cat, acc }) {
-  const prefix = tx.type === 'income' ? '+' : tx.type === 'transfer' ? '→' : '-'
-  const title  = cat?.label ?? tx.note ?? tx.type
-  const sub    = acc?.name  ?? '—'
+function TxRow({ tx }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 10px', height: 60, background: '#1C1C1E', borderRadius: 20 }}>
-      <CategoryIcon catKey={cat?.key} color={cat?.color} />
-      <span style={{ flex: 1, fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-        {title}
-      </span>
+      <CategoryIcon cat={tx.cat} color={tx.color} />
+      <span style={{ flex: 1, fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{tx.title}</span>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 15, fontWeight: 510, letterSpacing: '-0.75px', color: '#fff' }}>
-          {prefix}{fmt(tx.amount)} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
+          {tx.amount} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
         </div>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{sub}</div>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{tx.sub}</div>
+      </div>
+    </div>
+  )
+}
+
+function LimitRow({ item }) {
+  const grad = `linear-gradient(90deg, #16E18C 0%, #F3E100 40%, #FF8000 70%, #FF3300 100%)`
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, background: '#1C1C1E', borderRadius: 20 }}>
+      <CategoryIcon cat={item.cat} color={item.color} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', marginBottom: 2 }}>{item.title}</div>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)', marginBottom: 8 }}>{item.detail}</div>
+        <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.10)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${item.progress * 100}%`, borderRadius: 3, background: grad }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BillRow({ item }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 10px', height: 60, background: '#1C1C1E', borderRadius: 20 }}>
+      <CategoryIcon cat={item.cat} color={item.color} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff' }}>{item.title}</div>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{item.sub}</div>
+      </div>
+      <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 15, fontWeight: 510, letterSpacing: '-0.75px', color: '#fff', flexShrink: 0 }}>
+        {item.amount} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
       </div>
     </div>
   )
@@ -408,13 +364,14 @@ function TabBtn({ tab, active, onClick }) {
         gap: 1, padding: '6px 8px 7px', border: 'none', cursor: 'pointer',
         background: active ? 'rgba(20,20,20,0.8)' : 'transparent',
         borderRadius: 100,
+        position: 'relative',
       }}
     >
-      <div style={{ height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 28, height: 28, flexShrink: 0, overflow: 'hidden' }}>
         <img
           src={tab.icon} alt={tab.label}
           style={{
-            width: tab.iw, height: tab.ih,
+            display: 'block', width: '100%', height: '100%', objectFit: 'contain',
             mixBlendMode: active ? 'normal' : 'plus-lighter',
             opacity: active ? 1 : 0.75,
           }}

@@ -34,7 +34,7 @@ export default function OTPScreen({ phone, onBack, onComplete }) {
   const g2 = code.slice(3, 6)
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div data-file="src/screens/OTPScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
       <input
         ref={inputRef}
         type="tel"
@@ -92,6 +92,7 @@ function OTPBox({ digits, isActive, cursorPos }) {
         const isCur = isActive && cursorPos === i
         return (
           <span key={i} style={{
+            fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
             fontSize: '52px', fontWeight: 600, letterSpacing: '-0.6px',
             color: empty ? `rgba(255,255,255,${isCur ? 0.45 : 0.18})` : '#fff',
             fontVariantNumeric: 'tabular-nums',

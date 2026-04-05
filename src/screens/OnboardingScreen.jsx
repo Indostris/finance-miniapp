@@ -129,7 +129,7 @@ export default function OnboardingScreen({ onPhone, onEmail }) {
   const cat  = CATEGORIES[activeIdx]
 
   return (
-    <div style={styles.root}>
+    <div data-file="src/screens/OnboardingScreen.jsx" style={styles.root}>
       <div style={styles.glow} />
 
       {/* Slot */}
