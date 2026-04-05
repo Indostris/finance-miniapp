@@ -224,7 +224,7 @@ export default function HomeScreen() {
             width: 60, height: 60, borderRadius: '50%', flexShrink: 0, marginLeft: 8,
             background: '#0091FF', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 10px 50px rgba(0,145,255,0.30), 0 4px 12px rgba(0,0,0,0.25)',
+            boxShadow: '0 4px 12px 0 rgba(0,0,0,0.25)',
           }}
         >
           <img src={IC_FAB_PLUS} alt="+" style={{ width: 25, height: 25, mixBlendMode: 'plus-lighter' }} />
