@@ -11,16 +11,16 @@ const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c
 const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
 const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
 
-// ── Category icon assets (Figma node 8141:25585) ──────────────────────────────
-const IC_CAT_OTHER         = 'https://www.figma.com/api/mcp/asset/26e71273-6838-47b1-9d61-60174c58ce95'
-const IC_CAT_GROCERY       = 'https://www.figma.com/api/mcp/asset/2fe6d5e2-30a7-4c95-ad90-813f0288b8af'
-const IC_CAT_TRANSPORT     = 'https://www.figma.com/api/mcp/asset/5e7973d3-e0c2-4f56-9ac3-87262a38e8b1'
-const IC_CAT_CLOTHING      = 'https://www.figma.com/api/mcp/asset/8f29f389-45b3-4a9e-8fe1-59b6a7f1f880'
-const IC_CAT_MEAL          = 'https://www.figma.com/api/mcp/asset/84bd2ccf-ea06-4e01-a839-a614c330c791'
-const IC_CAT_GLOBE         = 'https://www.figma.com/api/mcp/asset/6b017fe8-f0a4-4484-bc85-dd32e6bab532'
-const IC_CAT_HOUSE         = 'https://www.figma.com/api/mcp/asset/e632aacf-fd3c-40d2-84f7-bf5380b8b7b6'
-const IC_CAT_ENTERTAINMENT = 'https://www.figma.com/api/mcp/asset/62f2a926-0c64-484c-9a3b-7026db3a3afa'
-const IC_CAT_PLUS          = 'https://www.figma.com/api/mcp/asset/7d5df304-c96c-4f77-90ed-346c5bd0c0bd'
+// ── Category icon assets (Figma node 8141:25585, refreshed) ──────────────────
+const IC_CAT_HOUSE         = 'https://www.figma.com/api/mcp/asset/48fad630-71f4-4e73-82f5-3c1e7dc38e83'
+const IC_CAT_MEAL          = 'https://www.figma.com/api/mcp/asset/db46d06c-7272-4041-b50d-804d61393dc9'
+const IC_CAT_GLOBE         = 'https://www.figma.com/api/mcp/asset/ad164a0b-0034-4147-8c7d-5c50510ff9cb'
+const IC_CAT_CLOTHING      = 'https://www.figma.com/api/mcp/asset/9b866578-f9c6-4b5f-8ad3-e4a64d925389'
+const IC_CAT_TRANSPORT     = 'https://www.figma.com/api/mcp/asset/55b0b36b-0eeb-4a2c-9fd6-4798a82899ae'
+const IC_CAT_ENTERTAINMENT = 'https://www.figma.com/api/mcp/asset/04b94254-3020-4dc0-a350-5cfc8c32e653'
+const IC_CAT_GROCERY       = 'https://www.figma.com/api/mcp/asset/948e02da-4677-40c5-b0c6-806e41a40329'
+const IC_CAT_OTHER         = 'https://www.figma.com/api/mcp/asset/76ddcc04-fb71-474d-980b-b6068fdabfaa'
+const IC_CAT_PLUS          = 'https://www.figma.com/api/mcp/asset/22af1966-0aa2-4887-905b-ea99677865a7'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
@@ -30,15 +30,16 @@ const NAV_TYPES = [
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
 
+// iw/ih = exact icon pixel dimensions at 40px container size (from Figma)
 const CATEGORIES = [
-  { key: 'other',         label: 'Other',     color: '#8E8E93', icon: IC_CAT_OTHER },
-  { key: 'grocery',       label: 'Grocery',   color: '#FF383C', icon: IC_CAT_GROCERY },
-  { key: 'transport',     label: 'Transport', color: '#34C759', icon: IC_CAT_TRANSPORT },
-  { key: 'clothing',      label: 'Clothing',  color: '#FF8D28', icon: IC_CAT_CLOTHING },
-  { key: 'meal',          label: 'Meal',      color: '#6155F5', icon: IC_CAT_MEAL },
-  { key: 'web',           label: 'Web',       color: '#FF2D55', icon: IC_CAT_GLOBE },
-  { key: 'home',          label: 'Home',      color: '#0088FF', icon: IC_CAT_HOUSE },
-  { key: 'gaming',        label: 'Gaming',    color: '#FF2D55', icon: IC_CAT_ENTERTAINMENT },
+  { key: 'other',    label: 'Other',     color: '#8E8E93', icon: IC_CAT_OTHER,         iw: 14.578, ih: 2.961  },
+  { key: 'grocery',  label: 'Grocery',   color: '#FF383C', icon: IC_CAT_GROCERY,       iw: 22.539, ih: 19.199 },
+  { key: 'transport',label: 'Transport', color: '#34C759', icon: IC_CAT_TRANSPORT,      iw: 27.836, ih: 12.57  },
+  { key: 'clothing', label: 'Clothing',  color: '#FF8D28', icon: IC_CAT_CLOTHING,       iw: 25.72,  ih: 21.27  },
+  { key: 'meal',     label: 'Meal',      color: '#6155F5', icon: IC_CAT_MEAL,           iw: 13.425, ih: 22.646 },
+  { key: 'web',      label: 'Web',       color: '#FF2D55', icon: IC_CAT_GLOBE,          iw: 19.883, ih: 19.727 },
+  { key: 'home',     label: 'Home',      color: '#0088FF', icon: IC_CAT_HOUSE,          iw: 23.32,  ih: 20.537 },
+  { key: 'gaming',   label: 'Gaming',    color: '#FF2D55', icon: IC_CAT_ENTERTAINMENT,  iw: 28.193, ih: 17.695 },
 ]
 
 // [label, isPill]
@@ -195,7 +196,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
           {/* Category chip — dynamic */}
           <button onClick={() => setShowPicker(true)} style={chipStyle}>
-            <CategoryIconMini color={category.color} icon={category.icon} />
+            <CategoryIconMini color={category.color} icon={category.icon} iw={category.iw} ih={category.ih} />
             {category.label}
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
@@ -272,50 +273,45 @@ const chipStyle = {
   color: '#fff', fontSize: 17, fontWeight: 510,
 }
 
-// ── Small category icon for chip ──────────────────────────────────────────────
-function CategoryIconMini({ color, icon }) {
+// ── Category icon — matches Figma structure exactly ───────────────────────────
+// Figma: colored bg → fill-div (mix-blend-screen, overflow hidden) → icon (mix-blend-plus-lighter, exact px size)
+function CategoryIcon({ color, icon, iw, ih, size = 40, radius = 12 }) {
+  const scale = size / 40
   return (
     <div style={{
-      width: 28, height: 28, borderRadius: 8, background: color,
+      width: size, height: size, borderRadius: radius, background: color,
       position: 'relative', overflow: 'hidden', flexShrink: 0,
     }}>
-      <div style={{
-        position: 'absolute', inset: '15%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        mixBlendMode: 'plus-lighter',
-      }}>
-        <img src={icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-      </div>
+      {/* gradient fill — mix-blend-screen over the colored bg */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen', pointerEvents: 'none',
-      }} />
+        mixBlendMode: 'screen', overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {/* icon — mix-blend-plus-lighter over the gradient */}
+        <img
+          src={icon}
+          alt=""
+          style={{
+            display: 'block',
+            width: iw * scale,
+            height: ih * scale,
+            mixBlendMode: 'plus-lighter',
+            flexShrink: 0,
+          }}
+        />
+      </div>
     </div>
   )
 }
 
-// ── Full-screen category icon (Figma exact) ───────────────────────────────────
-function CategoryIconFull({ color, icon }) {
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 12, background: color,
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute', left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 24, height: 24, mixBlendMode: 'plus-lighter',
-      }}>
-        <img src={icon} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen', pointerEvents: 'none',
-      }} />
-    </div>
-  )
+function CategoryIconMini({ color, icon, iw, ih }) {
+  return <CategoryIcon color={color} icon={icon} iw={iw} ih={ih} size={28} radius={8} />
+}
+
+function CategoryIconFull({ color, icon, iw, ih }) {
+  return <CategoryIcon color={color} icon={icon} iw={iw} ih={ih} size={40} radius={12} />
 }
 
 // ── Category Picker ───────────────────────────────────────────────────────────
@@ -371,7 +367,7 @@ function CategoryPicker({ selected, onSelect, onClose }) {
                 borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <CategoryIconFull color={cat.color} icon={cat.icon} />
+              <CategoryIconFull color={cat.color} icon={cat.icon} iw={cat.iw} ih={cat.ih} />
               <span style={{
                 flex: 1, textAlign: 'left',
                 fontFamily: "'SF Pro', -apple-system, sans-serif",
