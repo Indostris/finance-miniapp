@@ -84,6 +84,7 @@ export default function HomeScreen({ userId }) {
   const [transactions, setTransactions] = useState([])
   const [accounts,     setAccounts]     = useState([])
   const [categories,   setCategories]   = useState([])
+  const [selectedAccount, setSelectedAccount] = useState('all')
 
   function fetchData() {
     Promise.all([
@@ -162,6 +163,50 @@ export default function HomeScreen({ userId }) {
               <RollingNumber value={monthSpent} size={40} weight={700} lineH={41} color="#fff" spacing="-0.6px" />
               <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px' }}>sums</span>
             </div>
+          </div>
+
+          {/* Account switcher */}
+          <div style={{ display: 'flex', gap: 4, padding: '0 16px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {/* All */}
+            <button
+              onClick={() => setSelectedAccount('all')}
+              style={{
+                flexShrink: 0, padding: '13px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: selectedAccount === 'all' ? 'rgba(120,120,120,0.2)' : 'rgba(118,118,128,0.12)',
+                color: selectedAccount === 'all' ? '#fff' : 'rgba(235,235,245,0.6)',
+                fontSize: 15, fontWeight: selectedAccount === 'all' ? 510 : 400,
+                letterSpacing: selectedAccount === 'all' ? '-0.75px' : '-0.23px',
+                lineHeight: '20px', fontFamily: "'SF Pro', -apple-system, sans-serif",
+              }}
+            >All</button>
+
+            {/* Account pills */}
+            {accounts.map(acc => (
+              <button
+                key={acc.id}
+                onClick={() => setSelectedAccount(acc.id)}
+                style={{
+                  flexShrink: 0, padding: '13px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: selectedAccount === acc.id ? 'rgba(120,120,120,0.2)' : 'rgba(118,118,128,0.12)',
+                  color: selectedAccount === acc.id ? '#fff' : 'rgba(235,235,245,0.6)',
+                  fontSize: 15, fontWeight: selectedAccount === acc.id ? 510 : 400,
+                  letterSpacing: selectedAccount === acc.id ? '-0.75px' : '-0.23px',
+                  lineHeight: '20px', fontFamily: "'SF Pro', -apple-system, sans-serif",
+                }}
+              >{acc.name}</button>
+            ))}
+
+            {/* Add card */}
+            <button style={{
+              flexShrink: 0, padding: '13px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: 'rgba(118,118,128,0.12)',
+              color: 'rgba(235,235,245,0.6)',
+              fontSize: 15, fontWeight: 400, letterSpacing: '-0.23px', lineHeight: '20px',
+              fontFamily: "'SF Pro', -apple-system, sans-serif",
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}>
+              <span>+</span><span>Add card</span>
+            </button>
           </div>
 
           {/* CTA Buttons */}

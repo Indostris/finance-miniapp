@@ -291,26 +291,16 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
             <div key={msg.id}>
               {msg.role === 'user' ? (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, paddingLeft: 64 }}>
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ background: '#fff', color: '#000', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
-                      {msg.text}
-                    </div>
-                    <div style={{ position: 'absolute', bottom: -1, right: -4, width: 16, height: 17, overflow: 'hidden' }}>
-                      <svg viewBox="0 0 16 17" width="16" height="17"><path d="M16 17 Q0 17 0 0 L16 0Z" fill="white"/></svg>
-                    </div>
+                  <div style={{ background: '#fff', color: '#000', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
+                    {msg.text}
                   </div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18, paddingRight: 64 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                     <AIAvatar />
-                    <div style={{ position: 'relative' }}>
-                      <div style={{ background: '#1C1C1E', color: '#fff', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
-                        {msg.text}
-                      </div>
-                      <div style={{ position: 'absolute', bottom: -1, left: -4, width: 16, height: 17, overflow: 'hidden' }}>
-                        <svg viewBox="0 0 16 17" width="16" height="17"><path d="M0 17 Q16 17 16 0 L0 0Z" fill="#1C1C1E"/></svg>
-                      </div>
+                    <div style={{ background: '#1C1C1E', color: '#fff', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
+                      {msg.text}
                     </div>
                   </div>
 
@@ -370,13 +360,8 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
           {thinking && (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, paddingRight: 64, marginBottom: 16 }}>
               <AIAvatar />
-              <div style={{ position: 'relative' }}>
-                <div style={{ background: '#1C1C1E', color: 'rgba(235,235,245,0.6)', padding: '8px 12px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.43px', lineHeight: '22px' }}>
-                  <TypingDots />
-                </div>
-                <div style={{ position: 'absolute', bottom: -1, left: -4, width: 16, height: 17, overflow: 'hidden' }}>
-                  <svg viewBox="0 0 16 17" width="16" height="17"><path d="M0 17 Q16 17 16 0 L0 0Z" fill="#1C1C1E"/></svg>
-                </div>
+              <div style={{ background: '#1C1C1E', color: 'rgba(235,235,245,0.6)', padding: '8px 12px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.43px', lineHeight: '22px' }}>
+                <TypingDots />
               </div>
             </div>
           )}
