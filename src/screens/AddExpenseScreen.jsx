@@ -6,10 +6,21 @@ const IC_TYPE_TRN = 'https://www.figma.com/api/mcp/asset/9b554be5-c241-4d12-9ac4
 const IC_TYPE_INC = 'https://www.figma.com/api/mcp/asset/f2d452bf-97f0-4f68-a67c-410b55c5c69d'
 const IC_MORE     = 'https://www.figma.com/api/mcp/asset/1ea56f75-fcaa-45a0-b53f-b3326d64c1d3'
 const IC_CALENDAR = 'https://www.figma.com/api/mcp/asset/a6a66353-2303-4dd5-855b-dd6b8974e7a2'
-const IC_DOTS     = 'https://www.figma.com/api/mcp/asset/ab795252-63ed-4aa0-be4a-5574ab2cf282'
 const IC_CARD     = 'https://www.figma.com/api/mcp/asset/b12e6732-587a-4438-8cc3-0a201d6ee9f5'
 const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c-c09447c3d6cd'
 const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
+const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
+
+// ── Category icon assets (Figma node 8141:25585) ──────────────────────────────
+const IC_CAT_OTHER         = 'https://www.figma.com/api/mcp/asset/26e71273-6838-47b1-9d61-60174c58ce95'
+const IC_CAT_GROCERY       = 'https://www.figma.com/api/mcp/asset/2fe6d5e2-30a7-4c95-ad90-813f0288b8af'
+const IC_CAT_TRANSPORT     = 'https://www.figma.com/api/mcp/asset/5e7973d3-e0c2-4f56-9ac3-87262a38e8b1'
+const IC_CAT_CLOTHING      = 'https://www.figma.com/api/mcp/asset/8f29f389-45b3-4a9e-8fe1-59b6a7f1f880'
+const IC_CAT_MEAL          = 'https://www.figma.com/api/mcp/asset/84bd2ccf-ea06-4e01-a839-a614c330c791'
+const IC_CAT_GLOBE         = 'https://www.figma.com/api/mcp/asset/6b017fe8-f0a4-4484-bc85-dd32e6bab532'
+const IC_CAT_HOUSE         = 'https://www.figma.com/api/mcp/asset/e632aacf-fd3c-40d2-84f7-bf5380b8b7b6'
+const IC_CAT_ENTERTAINMENT = 'https://www.figma.com/api/mcp/asset/62f2a926-0c64-484c-9a3b-7026db3a3afa'
+const IC_CAT_PLUS          = 'https://www.figma.com/api/mcp/asset/7d5df304-c96c-4f77-90ed-346c5bd0c0bd'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
@@ -19,10 +30,15 @@ const NAV_TYPES = [
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
 
-const CHIPS = [
-  { label: 'Today', icon: IC_CALENDAR },
-  { label: 'Other', icon: IC_DOTS     },
-  { label: 'Visa',  icon: IC_CARD     },
+const CATEGORIES = [
+  { key: 'other',         label: 'Other',     color: '#8E8E93', icon: IC_CAT_OTHER },
+  { key: 'grocery',       label: 'Grocery',   color: '#FF383C', icon: IC_CAT_GROCERY },
+  { key: 'transport',     label: 'Transport', color: '#34C759', icon: IC_CAT_TRANSPORT },
+  { key: 'clothing',      label: 'Clothing',  color: '#FF8D28', icon: IC_CAT_CLOTHING },
+  { key: 'meal',          label: 'Meal',      color: '#6155F5', icon: IC_CAT_MEAL },
+  { key: 'web',           label: 'Web',       color: '#FF2D55', icon: IC_CAT_GLOBE },
+  { key: 'home',          label: 'Home',      color: '#0088FF', icon: IC_CAT_HOUSE },
+  { key: 'gaming',        label: 'Gaming',    color: '#FF2D55', icon: IC_CAT_ENTERTAINMENT },
 ]
 
 // [label, isPill]
@@ -41,9 +57,11 @@ function formatAmount(digits) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function AddExpenseScreen({ type: initType, onClose }) {
-  const [type,   setType]   = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
-  const [digits, setDigits] = useState('')
-  const [note,   setNote]   = useState('')
+  const [type,        setType]        = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
+  const [digits,      setDigits]      = useState('')
+  const [note,        setNote]        = useState('')
+  const [category,    setCategory]    = useState(CATEGORIES[0])
+  const [showPicker,  setShowPicker]  = useState(false)
 
   const displayAmt = formatAmount(digits)
 
@@ -81,7 +99,6 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
         height: 'calc(var(--safe-top) + 62px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Back — wide pill */}
         <button
           onClick={onClose}
           style={{
@@ -92,11 +109,10 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           }}
         >
           <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
-            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>
 
-        {/* Type switcher — 3 icons in pill */}
         <div style={{
           background: '#1C1C1E', borderRadius: 999,
           padding: 4, display: 'flex', gap: 0, flexShrink: 0,
@@ -119,7 +135,6 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           ))}
         </div>
 
-        {/* More — wide pill (full SVG image) */}
         <div style={{
           width: 60, height: 45, borderRadius: 999, overflow: 'hidden',
           flexShrink: 0, position: 'relative',
@@ -171,22 +186,26 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
         {/* Chips */}
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {CHIPS.map(({ label, icon }) => (
-            <button
-              key={label}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                padding: '13px 16px', borderRadius: 999, flexShrink: 0,
-                background: 'rgba(118,118,128,0.24)', border: 'none', cursor: 'pointer',
-                fontFamily: "'SF Pro', -apple-system, sans-serif",
-                color: '#fff', fontSize: 17, fontWeight: 510,
-              }}
-            >
-              <img src={icon} alt={label} style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-              {label}
-              <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-            </button>
-          ))}
+          {/* Date chip */}
+          <button style={chipStyle}>
+            <img src={IC_CALENDAR} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            Today
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
+
+          {/* Category chip — dynamic */}
+          <button onClick={() => setShowPicker(true)} style={chipStyle}>
+            <CategoryIconMini color={category.color} icon={category.icon} />
+            {category.label}
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
+
+          {/* Account chip */}
+          <button style={chipStyle}>
+            <img src={IC_CARD} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            Visa
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+          </button>
         </div>
 
         {/* Note */}
@@ -229,6 +248,191 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           }}
         >
           Add {type.toLowerCase()}
+        </button>
+      </div>
+
+      {/* ── Category Picker overlay ── */}
+      {showPicker && (
+        <CategoryPicker
+          selected={category}
+          onSelect={cat => { setCategory(cat); setShowPicker(false) }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Shared chip style ─────────────────────────────────────────────────────────
+const chipStyle = {
+  display: 'flex', alignItems: 'center', gap: 4,
+  padding: '13px 16px', borderRadius: 999, flexShrink: 0,
+  background: 'rgba(118,118,128,0.24)', border: 'none', cursor: 'pointer',
+  fontFamily: "'SF Pro', -apple-system, sans-serif",
+  color: '#fff', fontSize: 17, fontWeight: 510,
+}
+
+// ── Small category icon for chip ──────────────────────────────────────────────
+function CategoryIconMini({ color, icon }) {
+  return (
+    <div style={{
+      width: 28, height: 28, borderRadius: 8, background: color,
+      position: 'relative', overflow: 'hidden', flexShrink: 0,
+    }}>
+      <div style={{
+        position: 'absolute', inset: '15%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        mixBlendMode: 'plus-lighter',
+      }}>
+        <img src={icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
+        mixBlendMode: 'screen', pointerEvents: 'none',
+      }} />
+    </div>
+  )
+}
+
+// ── Full-screen category icon (Figma exact) ───────────────────────────────────
+function CategoryIconFull({ color, icon }) {
+  return (
+    <div style={{
+      width: 40, height: 40, borderRadius: 12, background: color,
+      position: 'relative', overflow: 'hidden', flexShrink: 0,
+    }}>
+      <div style={{
+        position: 'absolute', left: '50%', top: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 24, height: 24, mixBlendMode: 'plus-lighter',
+      }}>
+        <img src={icon} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
+        mixBlendMode: 'screen', pointerEvents: 'none',
+      }} />
+    </div>
+  )
+}
+
+// ── Category Picker ───────────────────────────────────────────────────────────
+function CategoryPicker({ selected, onSelect, onClose }) {
+  const [pending, setPending] = useState(selected)
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, background: '#000',
+      display: 'flex', flexDirection: 'column', zIndex: 20,
+    }}>
+      {/* Toolbar */}
+      <div style={{
+        padding: 'calc(var(--safe-top) + 10px) 16px 0',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: 'calc(var(--safe-top) + 62px)', flexShrink: 0,
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            width: 60, height: 45, borderRadius: 999,
+            background: '#1C1C1E', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
+        <span style={{
+          fontFamily: "'SF Pro', -apple-system, sans-serif",
+          fontSize: 17, fontWeight: 590, color: '#fff', letterSpacing: '-0.43px',
+        }}>
+          Kategoriya
+        </span>
+        <div style={{ width: 60 }} />
+      </div>
+
+      {/* Category list card */}
+      <div style={{
+        flex: 1, overflowY: 'auto', padding: '16px 16px 0',
+        scrollbarWidth: 'none',
+      }}>
+        <div style={{ borderRadius: 20, overflow: 'hidden', background: '#1C1C1E' }}>
+          {CATEGORIES.map((cat, i) => (
+            <button
+              key={cat.key}
+              onClick={() => setPending(cat)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center',
+                gap: 12, padding: '12px 16px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <CategoryIconFull color={cat.color} icon={cat.icon} />
+              <span style={{
+                flex: 1, textAlign: 'left',
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px',
+              }}>
+                {cat.label}
+              </span>
+              {pending.key === cat.key && (
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: '#0088FF', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                    <path d="M1 4L4.5 7.5L11 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
+
+          {/* Add category row */}
+          <button style={{
+            width: '100%', display: 'flex', alignItems: 'center',
+            gap: 12, padding: '12px 16px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+              background: 'rgba(0,136,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <img src={IC_CAT_PLUS} alt="+" style={{ width: 24, height: 24, mixBlendMode: 'plus-lighter' }} />
+            </div>
+            <span style={{
+              fontFamily: "'SF Pro', -apple-system, sans-serif",
+              fontSize: 17, fontWeight: 510, color: '#0088FF', letterSpacing: '-0.43px',
+            }}>
+              Add category
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Continue button */}
+      <div style={{
+        padding: '14px 16px',
+        paddingBottom: 'calc(14px + var(--safe-bottom))',
+        flexShrink: 0,
+      }}>
+        <button
+          onClick={() => onSelect(pending)}
+          style={{
+            width: '100%', height: 60, borderRadius: 999, border: 'none',
+            background: '#fff', color: '#1A1B1B',
+            fontFamily: "'SF Pro', -apple-system, sans-serif",
+            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
+          }}
+        >
+          Continue
         </button>
       </div>
     </div>
