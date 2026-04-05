@@ -11,16 +11,16 @@ const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c
 const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
 const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
 
-// ── Category icon assets (local) ─────────────────────────────────────────────
-import IC_CAT_HOUSE         from '../assets/icons/categories/house.png'
-import IC_CAT_MEAL          from '../assets/icons/categories/meal.png'
-import IC_CAT_GLOBE         from '../assets/icons/categories/web.png'
-import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.png'
-import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.png'
-import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.png'
-import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.png'
-import IC_CAT_OTHER         from '../assets/icons/categories/other.png'
-import IC_CAT_PLUS          from '../assets/icons/categories/plus.png'
+// ── Category icon assets (local SVG) ─────────────────────────────────────────
+import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
+import IC_CAT_MEAL          from '../assets/icons/categories/meal.svg'
+import IC_CAT_GLOBE         from '../assets/icons/categories/web.svg'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
+import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
+import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
+import IC_CAT_PLUS          from '../assets/icons/categories/plus.svg'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
