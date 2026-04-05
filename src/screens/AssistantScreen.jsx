@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-<<<<<<< Updated upstream
+import AddExpenseScreen from './AddExpenseScreen'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_BACK     from '../assets/icons/ui/ai-back.svg'
@@ -16,15 +16,6 @@ import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
 import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
 import IC_CAT_HOME          from '../assets/icons/categories/house.svg'
 import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
-=======
-import AddExpenseScreen from './AddExpenseScreen'
-import IC_BACK from '../assets/icons/ui/back.svg'
-import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
-import IC_CAT_TRANSPORT    from '../assets/icons/categories/transport.svg'
-import IC_CAT_GROCERY      from '../assets/icons/categories/grocery.svg'
-import IC_CAT_HOME         from '../assets/icons/categories/house.svg'
-import IC_CAT_CLOTHING     from '../assets/icons/categories/clothing.svg'
->>>>>>> Stashed changes
 import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
 import IC_CAT_SHOPPING      from '../assets/icons/categories/web.svg'
 import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
@@ -49,36 +40,9 @@ const CATEGORY_META = {
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
-// ── Mock parser ────────────────────────────────────────────────────────────────
-function mockParse(text) {
-  const results = []
-  const patterns = [
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oshga|ovqatga|taoml?|meal|food|restoran|cafe)/i, cat: 'food' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(taksi|taxi|avtobus|metro|transport)/i,            cat: 'transport' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oziq-ovqat|bozor|supermarket|grocery)/i,          cat: 'grocery' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(uy|home|kvartira|kommunal)/i,                     cat: 'home' },
-    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(kiyim|clothing)/i,                                cat: 'clothing' },
-  ]
-  const parts = text.split(/,|;|\bva\b/)
-  parts.forEach(part => {
-    const m = part.match(/(\d[\d\s]{0,9})/)
-    if (!m) return
-    const amount = parseInt(m[1].replace(/\s/g, ''), 10)
-    if (!amount) return
-    let cat = 'other'
-    for (const p of patterns) { if (p.re.test(part)) { cat = p.cat; break } }
-    results.push({ id: Date.now() + Math.random(), amount, cat, account: 'TBC Salom' })
-  })
-  if (!results.length && /\d/.test(text)) {
-    const m = text.match(/(\d[\d\s]{0,9})/)
-    if (m) results.push({ id: Date.now(), amount: parseInt(m[1].replace(/\s/g,''),10), cat: 'other', account: 'TBC Salom' })
-  }
-  return results
-}
+function fmt(n) { return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') }
 
-function fmt(n) { return n.toLocaleString('ru').replace(/,/g, ' ') }
-
-// ── AI Avatar (gradient circle + spark) ──────────────────────────────────────
+// ── AI Avatar ─────────────────────────────────────────────────────────────────
 function AIAvatar() {
   return (
     <div style={{
@@ -123,7 +87,6 @@ function CatIcon({ cat }) {
   return <img src={CAT_ICONS[cat] || CAT_ICONS.other} alt="" style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'block' }} />
 }
 
-<<<<<<< Updated upstream
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const SF = "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif"
 const pillBtn = {
@@ -138,41 +101,25 @@ const circBtn = {
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
-export default function AssistantScreen({ onBack }) {
-  const [messages,   setMessages]   = useState([])
-  const [inputText,  setInputText]  = useState('')
-  const [thinking,   setThinking]   = useState(false)
-  const [recording,  setRecording]  = useState(false)
-  const [editItem,   setEditItem]   = useState(null)
-  const scrollRef     = useRef(null)
-  const inputRef      = useRef(null)
-  const fileRef       = useRef(null)
-  const recogRef      = useRef(null)
-  const transcriptRef = useRef('')
-
-  const isEmpty = messages.length === 0 && !thinking
-=======
-// ── Main screen ───────────────────────────────────────────────────────────────
 export default function AssistantScreen({ onBack, userId, accounts = [], categories = [] }) {
-  const [uiState,   setUiState]   = useState('empty')
-  const [inputText, setInputText] = useState('')
-  const [recording, setRecording] = useState(false)
   const [messages,  setMessages]  = useState([])
+  const [inputText, setInputText] = useState('')
+  const [thinking,  setThinking]  = useState(false)
+  const [recording, setRecording] = useState(false)
   const [editItem,  setEditItem]  = useState(null)
   const scrollRef    = useRef(null)
   const inputRef     = useRef(null)
   const fileRef      = useRef(null)
-  const mediaRef     = useRef(null)   // MediaRecorder instance
-  const chunksRef    = useRef([])     // recorded audio chunks
-  const cancelledRef = useRef(false)  // true = discard audio on stop
->>>>>>> Stashed changes
+  const mediaRef     = useRef(null)
+  const chunksRef    = useRef([])
+  const cancelledRef = useRef(false)
+
+  const isEmpty = messages.length === 0 && !thinking
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, thinking])
 
-<<<<<<< Updated upstream
-=======
   // ── Add all to DB ───────────────────────────────────────────────────────────
   const addAll = useCallback(async (msgId, items) => {
     const body = {
@@ -201,59 +148,79 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
   }, [userId, accounts, onBack])
 
   // ── Send text to AI ─────────────────────────────────────────────────────────
->>>>>>> Stashed changes
   const send = useCallback(async (text) => {
     if (!text.trim()) return
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: text.trim() }])
     setInputText('')
     setThinking(true)
     try {
-      const res = await fetch(`${API}/parse`, {
+      const res = await fetch(`${API}/text_separate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, user_id: Number(userId) }),
       })
-      const items = res.ok ? await res.json() : mockParse(text)
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', items,
+      if (!res.ok) throw new Error('API error')
+      const data = await res.json()
+      const items = (Array.isArray(data) ? data : data.items ?? []).map(item => ({
+        id: Date.now() + Math.random(),
+        amount: item.amount ?? 0,
+        cat: item.category || item.cat || 'other',
+        note: item.note ?? '',
+        account: accounts[0]?.name ?? 'Account',
+      }))
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1, role: 'ai', items,
         text: items.length > 0
           ? `Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko'ring`
           : `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
       }])
     } catch {
-      const items = mockParse(text)
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', items,
-        text: items.length > 0
-          ? `Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko'ring`
-          : `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1, role: 'ai', items: [],
+        text: `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
       }])
     }
     setThinking(false)
-  }, [])
+  }, [userId, accounts])
 
-  const startRecording = useCallback((e) => {
+  // ── Recording ───────────────────────────────────────────────────────────────
+  const startRecording = useCallback(async (e) => {
     e?.preventDefault()
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { alert('Голосовой ввод не поддерживается'); return }
-    transcriptRef.current = ''
-    const recog = new SR()
-    recog.lang = 'uz-UZ'; recog.interimResults = true; recog.continuous = true
-    recog.onresult = ev => {
-      const t = Array.from(ev.results).map(r => r[0].transcript).join('')
-      transcriptRef.current = t; setInputText(t)
-    }
-    recog.onend = () => {
-      setRecording(false); recogRef.current = null
-      const t = transcriptRef.current.trim()
-      if (t) { send(t); setInputText(''); transcriptRef.current = '' }
-    }
-    recog.onerror = () => { setRecording(false); recogRef.current = null }
-    recog.start(); recogRef.current = recog; setRecording(true)
-    const up = () => { window.removeEventListener('pointerup', up); recogRef.current?.stop() }
-    window.addEventListener('pointerup', up)
-  }, [send])
+    if (recording) return
+    cancelledRef.current = false
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const mr = new MediaRecorder(stream)
+      mediaRef.current = mr
+      mr.ondataavailable = ev => { if (ev.data.size > 0) chunksRef.current.push(ev.data) }
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop())
+        if (cancelledRef.current) { chunksRef.current = []; return }
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        chunksRef.current = []
+        const fd = new FormData()
+        fd.append('file', blob, 'audio.webm')
+        fd.append('user_id', String(userId))
+        setThinking(true)
+        try {
+          const res = await fetch(`${API}/transcribe_audio`, { method: 'POST', body: fd })
+          if (!res.ok) throw new Error()
+          const data = await res.json()
+          const text = data.text || data.transcript || ''
+          if (text.trim()) await send(text)
+        } catch { /* silent */ }
+        setThinking(false)
+      }
+      mr.start()
+      setRecording(true)
+    } catch { /* no mic */ }
+  }, [recording, userId, send])
 
-  const addAll = useCallback((msgId) => {
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, added: true } : m))
+  const stopRecording = useCallback((cancel = false) => {
+    cancelledRef.current = cancel
+    mediaRef.current?.stop()
+    setRecording(false)
   }, [])
 
   if (editItem) return (
@@ -323,7 +290,6 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
           {messages.map(msg => (
             <div key={msg.id}>
               {msg.role === 'user' ? (
-                /* User bubble — white, right */
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, paddingLeft: 64 }}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ background: '#fff', color: '#000', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
@@ -335,7 +301,6 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
                   </div>
                 </div>
               ) : (
-                /* AI message */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18, paddingRight: 64 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                     <AIAvatar />
@@ -349,7 +314,6 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
                     </div>
                   </div>
 
-                  {/* Expense rows */}
                   {msg.items?.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
                       {msg.items.map(item => {
@@ -383,7 +347,7 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
                       })}
 
                       {!msg.added ? (
-                        <button onClick={() => addAll(msg.id)} style={{
+                        <button onClick={() => addAll(msg.id, msg.items)} style={{
                           width: '100%', height: 60, borderRadius: 999,
                           background: '#0091FF', border: 'none', color: '#fff',
                           fontSize: 17, fontWeight: 510, letterSpacing: '-0.4px',
@@ -392,11 +356,7 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
                           Add {msg.items.length} Transaction{msg.items.length !== 1 ? 's' : ''}
                         </button>
                       ) : (
-<<<<<<< Updated upstream
-                        <div style={{ textAlign: 'center', padding: 10, fontSize: 15, color: '#00E8B3', letterSpacing: '-0.3px' }}>
-=======
                         <div style={{ textAlign: 'center', padding: '10px', fontSize: 15, color: '#fff', letterSpacing: '-0.3px' }}>
->>>>>>> Stashed changes
                           ✓ Added to history
                         </div>
                       )}
@@ -407,7 +367,6 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
             </div>
           ))}
 
-          {/* Thinking state */}
           {thinking && (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, paddingRight: 64, marginBottom: 16 }}>
               <AIAvatar />
@@ -459,8 +418,8 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
             />
           )}
           <button
-            onClick={inputText.trim() ? () => send(inputText) : undefined}
-            onPointerDown={!inputText.trim() ? startRecording : undefined}
+            onClick={inputText.trim() ? () => send(inputText) : recording ? () => stopRecording(false) : undefined}
+            onPointerDown={!inputText.trim() && !recording ? startRecording : undefined}
             style={{
               width: 36, height: 36, borderRadius: 999, border: 'none',
               background: recording ? '#FF3B30' : inputText.trim() ? '#0088FF' : 'transparent',
@@ -482,115 +441,3 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
     </div>
   )
 }
-<<<<<<< Updated upstream
-
-// ── Edit Item Screen ───────────────────────────────────────────────────────────
-const NUMPAD = [
-  ['1','2','3','+'],
-  ['4','5','6','−'],
-  ['7','8','9','×'],
-  [',','0','⌫','÷'],
-]
-
-function EditItemScreen({ item, onBack }) {
-  const meta = CATEGORY_META[item.cat] || CATEGORY_META.other
-  const [digits, setDigits] = useState(String(item.amount))
-
-  function tap(k) {
-    if (k === '⌫') setDigits(d => d.slice(0,-1) || '0')
-    else if (['+','−','×','÷'].includes(k)) return
-    else if (k === ',') setDigits(d => d.includes(',') ? d : d + ',')
-    else setDigits(d => d === '0' ? k : d + k)
-  }
-
-  const display = parseInt(digits.replace(',',''), 10)
-
-  return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
-      {/* Toolbar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
-        paddingTop: 'var(--safe-top, env(safe-area-inset-top, 44px))',
-        height: 'calc(var(--safe-top, env(safe-area-inset-top, 44px)) + 52px)',
-        flexShrink: 0,
-      }}>
-        <button onClick={onBack} style={pillBtn}>
-          <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex' }}>
-            <img src={IC_BACK} alt="" style={{ width: 32, height: 32, display: 'block' }} />
-          </div>
-        </button>
-        <div style={{ display: 'flex', background: '#1C1C1E', borderRadius: 999, padding: 4, gap: 2 }}>
-          {['+','⇄','↓','→'].map((ic, i) => (
-            <div key={i} style={{
-              width: 36, height: 36, borderRadius: 999,
-              background: i === 0 ? 'rgba(0,232,179,0.2)' : 'transparent',
-              color: i === 0 ? '#00E8B3' : 'rgba(255,255,255,0.6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, cursor: 'pointer',
-            }}>{ic}</div>
-          ))}
-        </div>
-        <button style={pillBtn}>
-          <div style={{ mixBlendMode: 'plus-lighter', display: 'flex' }}>
-            <img src={IC_LIST} alt="" style={{ width: 32, height: 32, display: 'block' }} />
-          </div>
-        </button>
-      </div>
-
-      {/* Amount */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 16, color: 'rgba(235,235,245,0.6)', marginBottom: 8, letterSpacing: '-0.43px' }}>New expense</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 48, fontWeight: 700, color: '#fff', letterSpacing: '-0.6px', lineHeight: 1 }}>
-            -{isNaN(display) ? 0 : fmt(display)}
-          </span>
-          <span style={{ fontSize: 20, color: 'rgba(235,235,245,0.6)' }}>sums</span>
-        </div>
-      </div>
-
-      {/* Bottom panel */}
-      <div style={{ padding: '0 16px', paddingBottom: 'calc(var(--safe-bottom, env(safe-area-inset-bottom, 0px)) + 32px)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {[['📅','Today'],['🍽', meta.label],['💳','TBC']].map(([ic, lb]) => (
-            <button key={lb} style={{
-              display: 'flex', alignItems: 'center', gap: 4, padding: '12px 14px',
-              borderRadius: 999, flexShrink: 0, background: 'rgba(118,118,128,0.24)',
-              border: 'none', color: '#fff', fontSize: 17, fontWeight: 510,
-              fontFamily: SF, cursor: 'pointer', letterSpacing: '-0.43px',
-            }}>
-              {ic} {lb} <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>⌄</span>
-            </button>
-          ))}
-        </div>
-
-        <div style={{ height: 50, borderRadius: 16, background: 'rgba(118,118,128,0.24)', display: 'flex', alignItems: 'center', padding: '0 16px', color: 'rgba(255,255,255,0.6)', fontSize: 17, fontFamily: SF }}>
-          Note
-        </div>
-
-        {NUMPAD.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: 2 }}>
-            {row.map(k => {
-              const isPill = ['⌫','+','−','×','÷'].includes(k)
-              return (
-                <button key={k} onClick={() => tap(k)} style={{
-                  flex: 1, height: 60, borderRadius: isPill ? 999 : 16,
-                  background: 'rgba(118,118,128,0.24)', border: 'none',
-                  color: '#fff', fontSize: 20, fontWeight: 500,
-                  cursor: 'pointer', fontFamily: SF,
-                }}>{k}</button>
-              )
-            })}
-          </div>
-        ))}
-
-        <button onClick={onBack} style={{
-          height: 60, borderRadius: 999, background: '#fff',
-          border: 'none', color: '#1A1B1B', fontSize: 17,
-          fontWeight: 510, cursor: 'pointer', letterSpacing: '-0.43px', fontFamily: SF,
-        }}>Save</button>
-      </div>
-    </div>
-  )
-}
-=======
->>>>>>> Stashed changes

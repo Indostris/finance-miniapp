@@ -170,6 +170,9 @@ export default function HomeScreen({ userId }) {
             <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
           </div>
 
+          {/* Spending Limits Banners */}
+          <SpendingLimitsBannerCarousel />
+
           {/* Recent Transactions */}
           <SectionHeader title="Recent transactions" />
           {txGroups.length === 0 ? (
@@ -211,6 +214,9 @@ export default function HomeScreen({ userId }) {
           </div>
         </div>
       </div>
+
+      {/* Scroll Edge Effect - Soft (top) — from Figma node 8109:6313 */}
+      <ScrollEdgeEffect direction="top" />
 
       {/* Action menu */}
       {showMenu && (
@@ -429,8 +435,132 @@ function TabBtn({ tab, active, onClick }) {
   )
 }
 
+// Figma node 8109:6313 — "Scroll Edge Effect - Soft"
+// Outer: backdrop-filter blur(5px), NO mask (always active full height).
+// Inner: backdrop-filter blur(30px) + bg black + mix-blend-mode screen + opacity 0.9 + gradient mask (controls falloff).
+function ScrollEdgeEffect({ direction }) {
+  const isTop = direction === 'top'
+  const mask = isTop
+    ? 'linear-gradient(to bottom, black 0%, transparent 100%)'
+    : 'linear-gradient(to top,   black 0%, transparent 100%)'
+
+  return (
+    <div style={{
+      position: 'absolute',
+      [isTop ? 'top' : 'bottom']: 0,
+      left: 0, right: 0,
+      height: 120,
+      zIndex: 5,
+      pointerEvents: 'none',
+      backdropFilter: 'blur(5px)',
+      WebkitBackdropFilter: 'blur(5px)',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+        background: '#000',
+        mixBlendMode: 'screen',
+        opacity: 0.9,
+        maskImage: mask,
+        WebkitMaskImage: mask,
+      }} />
+    </div>
+  )
+}
+
 const ACTION_ITEMS = ['Debt', 'Expense', 'Income', 'Transfer']
 const ACTION_ICONS = { Debt: '→', Expense: '+', Income: '↓', Transfer: '⇄' }
+
+function SpendingLimitsBannerCarousel() {
+  const [dismissed, setDismissed] = useState({})
+  const [activeIdx, setActiveIdx] = useState(0)
+  const scrollRef = useRef(null)
+
+  const allBanners = [
+    { id: 0, title: 'Add spending limits', desc: 'Set limits for key categories. This helps you keep spending under...' },
+    { id: 1, title: 'Add spending limits', desc: 'Set limits for key categories. This helps you keep spending under...' },
+  ]
+  const banners = allBanners.filter(b => !dismissed[b.id])
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return
+    const { scrollLeft, clientWidth } = scrollRef.current
+    const cardWidth = clientWidth - 48 + 12
+    setActiveIdx(Math.round(scrollLeft / cardWidth))
+  }
+
+  if (banners.length === 0) return null
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        style={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          padding: '0 16px',
+          gap: 12,
+        }}
+      >
+        {banners.map(banner => (
+          <div key={banner.id} style={{
+            scrollSnapAlign: 'start',
+            flexShrink: 0,
+            width: 'calc(100% - 48px)',
+            padding: 16,
+            borderRadius: 24,
+            background: 'rgba(0,136,255,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+          }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px',
+                color: 'rgba(0,136,255,0.96)', lineHeight: '21px',
+              }}>
+                {banner.title}
+              </div>
+              <div style={{
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                fontSize: 13, fontWeight: 400, letterSpacing: '-0.5px',
+                color: 'rgba(0,136,255,0.64)', lineHeight: '18px',
+              }}>
+                {banner.desc}
+              </div>
+            </div>
+            <button
+              onClick={() => setDismissed(prev => ({ ...prev, [banner.id]: true }))}
+              style={{
+                width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+                background: 'rgba(0,136,255,0.16)',
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <span style={{ color: 'rgba(0,136,255,0.96)', fontSize: 14, lineHeight: 1 }}>✕</span>
+            </button>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+        {banners.map((_, i) => (
+          <div key={i} style={{
+            width: 8, height: 8, borderRadius: '50%',
+            background: i === activeIdx ? '#fff' : 'rgba(255,255,255,0.35)',
+            transition: 'background 0.2s',
+          }} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function ActionMenu({ onClose, onSelect }) {
   return (
