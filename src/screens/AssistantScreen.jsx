@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+<<<<<<< Updated upstream
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_BACK     from '../assets/icons/ui/ai-back.svg'
@@ -15,6 +16,15 @@ import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
 import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
 import IC_CAT_HOME          from '../assets/icons/categories/house.svg'
 import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
+=======
+import AddExpenseScreen from './AddExpenseScreen'
+import IC_BACK from '../assets/icons/ui/back.svg'
+import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
+import IC_CAT_TRANSPORT    from '../assets/icons/categories/transport.svg'
+import IC_CAT_GROCERY      from '../assets/icons/categories/grocery.svg'
+import IC_CAT_HOME         from '../assets/icons/categories/house.svg'
+import IC_CAT_CLOTHING     from '../assets/icons/categories/clothing.svg'
+>>>>>>> Stashed changes
 import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
 import IC_CAT_SHOPPING      from '../assets/icons/categories/web.svg'
 import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
@@ -113,6 +123,7 @@ function CatIcon({ cat }) {
   return <img src={CAT_ICONS[cat] || CAT_ICONS.other} alt="" style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'block' }} />
 }
 
+<<<<<<< Updated upstream
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const SF = "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif"
 const pillBtn = {
@@ -140,11 +151,57 @@ export default function AssistantScreen({ onBack }) {
   const transcriptRef = useRef('')
 
   const isEmpty = messages.length === 0 && !thinking
+=======
+// ── Main screen ───────────────────────────────────────────────────────────────
+export default function AssistantScreen({ onBack, userId, accounts = [], categories = [] }) {
+  const [uiState,   setUiState]   = useState('empty')
+  const [inputText, setInputText] = useState('')
+  const [recording, setRecording] = useState(false)
+  const [messages,  setMessages]  = useState([])
+  const [editItem,  setEditItem]  = useState(null)
+  const scrollRef    = useRef(null)
+  const inputRef     = useRef(null)
+  const fileRef      = useRef(null)
+  const mediaRef     = useRef(null)   // MediaRecorder instance
+  const chunksRef    = useRef([])     // recorded audio chunks
+  const cancelledRef = useRef(false)  // true = discard audio on stop
+>>>>>>> Stashed changes
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, thinking])
 
+<<<<<<< Updated upstream
+=======
+  // ── Add all to DB ───────────────────────────────────────────────────────────
+  const addAll = useCallback(async (msgId, items) => {
+    const body = {
+      user_id: Number(userId),
+      source: 'ai',
+      items: items.map(item => ({
+        category_key: item.cat && item.cat !== 'other' ? item.cat : null,
+        type: 'expense',
+        amount: Math.round(Number(String(item.amount).replace(/\s/g, '').replace(/,/g, ''))) || 0,
+        note: item.note ? String(item.note) : null,
+        account_id: accounts.length > 0 ? Number(accounts[0].id) : null,
+      })),
+    }
+    const res = await fetch(`${API}/transactions/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const detail = await res.json().catch(() => ({}))
+      console.error('[addAll] error:', detail)
+      return
+    }
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, added: true } : m))
+    setTimeout(() => onBack(), 800)
+  }, [userId, accounts, onBack])
+
+  // ── Send text to AI ─────────────────────────────────────────────────────────
+>>>>>>> Stashed changes
   const send = useCallback(async (text) => {
     if (!text.trim()) return
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: text.trim() }])
@@ -199,7 +256,27 @@ export default function AssistantScreen({ onBack }) {
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, added: true } : m))
   }, [])
 
-  if (editItem) return <EditItemScreen item={editItem} onBack={() => setEditItem(null)} />
+  if (editItem) return (
+    <AddExpenseScreen
+      type="Expense"
+      userId={userId}
+      accounts={accounts}
+      categories={categories}
+      initialAmount={String(editItem.amount ?? '')}
+      initialCategoryKey={editItem.cat}
+      initialNote={editItem.note ?? ''}
+      onClose={() => setEditItem(null)}
+      onSave={({ amount, cat, note }) => {
+        setMessages(prev => prev.map(msg => ({
+          ...msg,
+          items: msg.items?.map(it =>
+            it.id === editItem.id ? { ...it, amount, cat, note } : it
+          ),
+        })))
+        setEditItem(null)
+      }}
+    />
+  )
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
@@ -315,7 +392,11 @@ export default function AssistantScreen({ onBack }) {
                           Add {msg.items.length} Transaction{msg.items.length !== 1 ? 's' : ''}
                         </button>
                       ) : (
+<<<<<<< Updated upstream
                         <div style={{ textAlign: 'center', padding: 10, fontSize: 15, color: '#00E8B3', letterSpacing: '-0.3px' }}>
+=======
+                        <div style={{ textAlign: 'center', padding: '10px', fontSize: 15, color: '#fff', letterSpacing: '-0.3px' }}>
+>>>>>>> Stashed changes
                           ✓ Added to history
                         </div>
                       )}
@@ -401,6 +482,7 @@ export default function AssistantScreen({ onBack }) {
     </div>
   )
 }
+<<<<<<< Updated upstream
 
 // ── Edit Item Screen ───────────────────────────────────────────────────────────
 const NUMPAD = [
@@ -510,3 +592,5 @@ function EditItemScreen({ item, onBack }) {
     </div>
   )
 }
+=======
+>>>>>>> Stashed changes

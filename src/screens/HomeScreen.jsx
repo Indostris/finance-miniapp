@@ -115,7 +115,7 @@ export default function HomeScreen({ userId }) {
     if (tx.type === 'expense') monthSpent  += Number(tx.amount)
   }
 
-  const txGroups = groupByDate(transactions)
+  const txGroups = groupByDate(transactions.slice(0, 4))
 
   if (addType) return (
     <AddExpenseScreen
@@ -131,6 +131,7 @@ export default function HomeScreen({ userId }) {
     <AssistantScreen
       userId={userId}
       accounts={accounts}
+      categories={categories}
       onBack={() => { setShowAI(false); setSelectedTab(0); fetchData() }}
     />
   )
@@ -177,7 +178,7 @@ export default function HomeScreen({ userId }) {
             </div>
           ) : (
             <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {txGroups.slice(0, 6).map(g => (
+              {txGroups.map(g => (
                 <TxGroup key={g.date} group={g} catMap={catMap} accMap={accMap} />
               ))}
             </div>
@@ -296,7 +297,7 @@ function RollingNumber({ value, size, weight, lineH, color, spacing }) {
         if (!ch.changed) {
           return (
             <span key={i} style={{ ...base, display: 'inline-block', lineHeight: `${lineH}px` }}>
-              {ch.c}
+              {ch.c === ' ' ? '\u00a0' : ch.c}
             </span>
           )
         }

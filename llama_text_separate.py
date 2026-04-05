@@ -25,35 +25,42 @@ def convert_uzbek_numbers(text: str) -> str:
     result = []
     current = 0
     total = 0
+    digit_str = ""  # accumulate consecutive digit tokens as a string
 
     for word in words:
         word_clean = strip_uzbek_suffix(word)
 
         if word_clean.isdigit():
-            val = int(word_clean)
-            current += val
-
-        elif word_clean in UZBEK_NUMBERS:
-            val = UZBEK_NUMBERS[word_clean]
-            if val in (1000, 1000000):
-                if current == 0:
-                    current = 1
-                total += current * val
-                current = 0
-            elif val == 100:
-                if current == 0:
-                    current = 1
-                current *= val
-            else:
-                current += val
+            # Concatenate consecutive digit tokens so "21 010" → "21010", not 21+10=31
+            digit_str += word_clean
 
         else:
-            if current + total > 0:
-                result.append(str(current + total))
-                current = 0
-                total = 0
-            result.append(word)
+            if digit_str:
+                current += int(digit_str)
+                digit_str = ""
 
+            if word_clean in UZBEK_NUMBERS:
+                val = UZBEK_NUMBERS[word_clean]
+                if val in (1000, 1000000):
+                    if current == 0:
+                        current = 1
+                    total += current * val
+                    current = 0
+                elif val == 100:
+                    if current == 0:
+                        current = 1
+                    current *= val
+                else:
+                    current += val
+            else:
+                if current + total > 0:
+                    result.append(str(current + total))
+                    current = 0
+                    total = 0
+                result.append(word)
+
+    if digit_str:
+        current += int(digit_str)
     if current + total > 0:
         result.append(str(current + total))
 

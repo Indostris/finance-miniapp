@@ -61,13 +61,13 @@ const ROWS = [
 ]
 
 function formatAmount(digits) {
-  const raw = digits.replace(/[^\d]/g, '')
+  const raw = String(digits).replace(/[^\d]/g, '')
   if (!raw) return '0'
-  return parseInt(raw, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  return parseInt(raw, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function AddExpenseScreen({ type: initType, onClose, onAdd, userId, accounts = [], categories: dbCats = [] }) {
+export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSave, userId, accounts = [], categories: dbCats = [], initialAmount = '', initialCategoryKey = null, initialNote = '' }) {
   // Map DB categories to local icons
   const CATEGORIES = useMemo(() =>
     (dbCats.length > 0 ? dbCats : FALLBACK_CATEGORIES).map(c => ({
@@ -78,17 +78,18 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, userI
   [dbCats])
 
   const [type,       setType]       = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
-  const [digits,     setDigits]     = useState('')
-  const [note,       setNote]       = useState('')
+  const [digits,     setDigits]     = useState(initialAmount)
+  const [note,       setNote]       = useState(initialNote)
   const [category,   setCategory]   = useState(null)
   const [accIdx,     setAccIdx]     = useState(0)
   const [showPicker, setShowPicker] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
-  // Default to "other" category when DB data arrives
+  // Set category from DB: prefer initialCategoryKey, fallback to 'other'
   useEffect(() => {
     if (CATEGORIES.length > 0) {
-      setCategory(CATEGORIES.find(c => c.key === 'other') ?? CATEGORIES[0])
+      const target = initialCategoryKey ?? 'other'
+      setCategory(CATEGORIES.find(c => c.key === target) ?? CATEGORIES.find(c => c.key === 'other') ?? CATEGORIES[0])
     }
   }, [CATEGORIES])
 
@@ -112,6 +113,14 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, userI
   async function handleAdd() {
     const amount = parseInt(digits.replace(/\s/g, '').replace(/,/g, ''), 10)
     if (!amount || amount <= 0) { onClose(); return }
+
+    // Edit mode from AI screen — don't POST, just return updated data
+    if (onSave) {
+      onSave({ amount, cat: selectedCategory.key, note: note || null })
+      onClose()
+      return
+    }
+
     setSaving(true)
     try {
       await fetch(`${API_BASE}/users/${userId}/transactions`, {
@@ -299,7 +308,7 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, userI
             fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
           }}
         >
-          {saving ? 'Saving...' : `Add ${type.toLowerCase()}`}
+          {saving ? 'Saving...' : onSave ? 'Save changes' : `Add ${type.toLowerCase()}`}
         </button>
       </div>
 
