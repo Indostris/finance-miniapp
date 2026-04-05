@@ -1,369 +1,321 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import IC_BACK from '../assets/icons/ui/back.svg'
-import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
-import IC_CAT_TRANSPORT    from '../assets/icons/categories/transport.svg'
-import IC_CAT_GROCERY      from '../assets/icons/categories/grocery.svg'
-import IC_CAT_HOME         from '../assets/icons/categories/house.svg'
-import IC_CAT_CLOTHING     from '../assets/icons/categories/clothing.svg'
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+import IC_BACK     from '../assets/icons/ui/ai-back.svg'
+import IC_LIST     from '../assets/icons/ui/ai-list.svg'
+import IC_ATTACH   from '../assets/icons/ui/ai-attach.svg'
+import IC_MIC      from '../assets/icons/ui/ai-mic.svg'
+import IC_EDIT     from '../assets/icons/ui/ai-edit.svg'
+import IC_SPARK_LG from '../assets/icons/ui/ai-spark-lg.svg'
+import IC_SPARK_SM from '../assets/icons/ui/ai-spark-sm.svg'
+
+// ── Category icons ─────────────────────────────────────────────────────────────
+import IC_CAT_FOOD          from '../assets/icons/categories/meal.svg'
+import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
+import IC_CAT_HOME          from '../assets/icons/categories/house.svg'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
 import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
-import IC_CAT_SHOPPING     from '../assets/icons/categories/web.svg'
-import IC_CAT_OTHER        from '../assets/icons/categories/other.svg'
+import IC_CAT_SHOPPING      from '../assets/icons/categories/web.svg'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
 
 const CAT_ICONS = {
-  food:          IC_CAT_FOOD,
-  transport:     IC_CAT_TRANSPORT,
-  grocery:       IC_CAT_GROCERY,
-  home:          IC_CAT_HOME,
-  clothing:      IC_CAT_CLOTHING,
-  entertainment: IC_CAT_ENTERTAINMENT,
-  shopping:      IC_CAT_SHOPPING,
-  utilities:     IC_CAT_OTHER,
-  health:        IC_CAT_OTHER,
-  education:     IC_CAT_OTHER,
-  other:         IC_CAT_OTHER,
+  food: IC_CAT_FOOD, transport: IC_CAT_TRANSPORT, grocery: IC_CAT_GROCERY,
+  home: IC_CAT_HOME, clothing: IC_CAT_CLOTHING, entertainment: IC_CAT_ENTERTAINMENT,
+  shopping: IC_CAT_SHOPPING, utilities: IC_CAT_OTHER, health: IC_CAT_OTHER,
+  education: IC_CAT_OTHER, other: IC_CAT_OTHER,
+}
+
+const CATEGORY_META = {
+  food:          { label: 'Meal',      color: '#6155F5' },
+  transport:     { label: 'Transport', color: '#34C759' },
+  grocery:       { label: 'Grocery',   color: '#FF3830' },
+  home:          { label: 'Home',      color: '#0088FF' },
+  clothing:      { label: 'Clothing',  color: '#FF9500' },
+  entertainment: { label: 'Fun',       color: '#FF2D55' },
+  shopping:      { label: 'Shopping',  color: '#FF9500' },
+  other:         { label: 'Other',     color: '#8E8E93' },
 }
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
-const CATEGORY_META = {
-  food:          { label: 'Meal',        color: '#6155F5', icon: '🍔' },
-  transport:     { label: 'Transport',   color: '#34C759', icon: '🚗' },
-  grocery:       { label: 'Grocery',     color: '#FF3830', icon: '🛒' },
-  home:          { label: 'Home',        color: '#0088FF', icon: '🏠' },
-  clothing:      { label: 'Clothing',    color: '#FF9500', icon: '👕' },
-  entertainment: { label: 'Fun',         color: '#FF2D55', icon: '🎮' },
-  shopping:      { label: 'Shopping',    color: '#FF9500', icon: '🛍️' },
-  utilities:     { label: 'Utilities',   color: '#636366', icon: '💡' },
-  health:        { label: 'Health',      color: '#30D158', icon: '💊' },
-  education:     { label: 'Education',   color: '#0088FF', icon: '📚' },
-  other:         { label: 'Other',       color: '#8E8E93', icon: '⋯'  },
+// ── Mock parser ────────────────────────────────────────────────────────────────
+function mockParse(text) {
+  const results = []
+  const patterns = [
+    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oshga|ovqatga|taoml?|meal|food|restoran|cafe)/i, cat: 'food' },
+    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(taksi|taxi|avtobus|metro|transport)/i,            cat: 'transport' },
+    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(oziq-ovqat|bozor|supermarket|grocery)/i,          cat: 'grocery' },
+    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(uy|home|kvartira|kommunal)/i,                     cat: 'home' },
+    { re: /(\d[\d\s]*)\s*(so['']?m|sum)?\s*(kiyim|clothing)/i,                                cat: 'clothing' },
+  ]
+  const parts = text.split(/,|;|\bva\b/)
+  parts.forEach(part => {
+    const m = part.match(/(\d[\d\s]{0,9})/)
+    if (!m) return
+    const amount = parseInt(m[1].replace(/\s/g, ''), 10)
+    if (!amount) return
+    let cat = 'other'
+    for (const p of patterns) { if (p.re.test(part)) { cat = p.cat; break } }
+    results.push({ id: Date.now() + Math.random(), amount, cat, account: 'TBC Salom' })
+  })
+  if (!results.length && /\d/.test(text)) {
+    const m = text.match(/(\d[\d\s]{0,9})/)
+    if (m) results.push({ id: Date.now(), amount: parseInt(m[1].replace(/\s/g,''),10), cat: 'other', account: 'TBC Salom' })
+  }
+  return results
 }
 
-// ── Spark icon ────────────────────────────────────────────────────────────────
-const SparkIcon = () => (
-  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M37.7896 21.728C37.342 21.728 37.0622 21.426 37.0062 21.0142C36.2788 16.5937 36.3067 16.4839 31.5503 15.6602C31.0746 15.5779 30.7948 15.3033 30.7948 14.864C30.7948 14.4522 31.0746 14.1776 31.4943 14.0952C36.3347 13.1892 36.3067 13.0794 37.0062 8.74131C37.0622 8.30202 37.342 8 37.7896 8C38.2373 8 38.5171 8.30202 38.601 8.71386C39.3285 13.1892 39.2725 13.3265 44.085 14.0952C44.5047 14.1502 44.8124 14.4522 44.8124 14.864C44.8124 15.3033 44.5326 15.5779 44.085 15.6602C39.2725 16.5663 39.3565 16.6486 38.601 21.0416C38.5171 21.426 38.2373 21.728 37.7896 21.728ZM24.1917 41.4414C23.5202 41.4414 23.0166 40.9747 22.9326 40.2608C22.0373 33.0948 21.7855 32.8477 14.2591 31.722C13.4756 31.6122 13 31.1729 13 30.4865C13 29.8275 13.4756 29.3608 14.1192 29.251C21.7855 27.8782 22.0373 27.8507 22.9326 20.7121C23.0166 19.9983 23.5202 19.5315 24.1917 19.5315C24.8632 19.5315 25.3668 19.9983 25.4508 20.6847C26.4021 28.0429 26.6259 28.2351 34.2642 29.251C34.9078 29.3333 35.3834 29.8275 35.3834 30.4865C35.3834 31.1454 34.9078 31.6122 34.2642 31.722C26.5699 33.0948 26.4021 33.1497 25.4508 40.3432C25.3668 40.9747 24.8352 41.4414 24.1917 41.4414ZM44.2249 72C43.1337 72 42.2943 71.2312 42.0984 70.1055C39.7762 55.5264 37.9016 53.7143 23.4363 51.7649C22.2611 51.6002 21.4497 50.749 21.4497 49.6508C21.4497 48.5526 22.2891 47.674 23.4642 47.5367C37.9575 45.9442 40.028 43.7752 42.0984 29.2235C42.2663 28.0978 43.1337 27.329 44.2249 27.329C45.2881 27.329 46.1554 28.0978 46.3513 29.2235C48.5896 43.7752 50.5202 45.7795 65.0135 47.5367C66.1606 47.7014 67 48.58 67 49.6508C67 50.749 66.1606 51.6551 64.9855 51.7649C50.4642 53.3848 48.3938 55.5264 46.3513 70.1055C46.1554 71.2312 45.3161 72 44.2249 72Z" fill="url(#spark_grad)"/>
-    <defs>
-      <radialGradient id="spark_grad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(40 19.6055) rotate(90) scale(57.32 48.3638)">
-        <stop stopColor="#C7FFF2"/>
-        <stop offset="1" stopColor="#0091FF"/>
-      </radialGradient>
-    </defs>
-  </svg>
-)
+function fmt(n) { return n.toLocaleString('ru').replace(/,/g, ' ') }
 
-const AIAvatar = () => (
-  <div style={{
-    width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-    background: 'radial-gradient(circle at 50% 25%, #C7FFF2, #95E4F5 25%, #63C8F9 50%, #4BBAFA 62%, #32ADFC 75%, #199FFD 87%, #0C98FE 94%, #0091FF)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 20,
-  }}>✦</div>
-)
+// ── AI Avatar (gradient circle + spark) ──────────────────────────────────────
+function AIAvatar() {
+  return (
+    <div style={{
+      width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+      background: 'radial-gradient(circle at 50% 20%, #C7FFF2 0%, #95E4F5 25%, #63C8F9 50%, #4BBAFA 62%, #32ADFC 75%, #199FFD 87%, #0C98FE 94%, #0091FF 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <img src={IC_SPARK_SM} alt="" style={{ width: 22, height: 22, display: 'block' }} />
+    </div>
+  )
+}
 
-const TypingDots = () => {
+// ── Typing dots ───────────────────────────────────────────────────────────────
+function TypingDots() {
   const [dot, setDot] = useState(0)
   useEffect(() => {
     const id = setInterval(() => setDot(d => (d + 1) % 4), 420)
     return () => clearInterval(id)
   }, [])
-  return <span style={{ letterSpacing: 1 }}>{'Aniqlamoqdaman' + '.'.repeat(dot)}</span>
+  return <span>{'Aniqlamoqdaman' + '.'.repeat(dot)}</span>
 }
 
-const Waveform = () => (
-  <div style={{ display: 'flex', gap: 3, alignItems: 'center', height: 40 }}>
-    {Array.from({ length: 28 }, (_, i) => <WaveBar key={i} delay={i * 60} />)}
-  </div>
-)
-const WaveBar = ({ delay }) => {
+// ── Waveform ──────────────────────────────────────────────────────────────────
+function WaveBar({ delay }) {
   const [h, setH] = useState(4)
   useEffect(() => {
-    const id = setInterval(() => setH(4 + Math.random() * 28), 120 + delay % 200)
+    const id = setInterval(() => setH(4 + Math.random() * 24), 130 + delay % 180)
     return () => clearInterval(id)
   }, [])
-  return <div style={{ width: 3, height: h, borderRadius: 2, background: '#0088FF', transition: 'height 0.12s ease' }} />
+  return <div style={{ width: 3, height: h, borderRadius: 2, background: '#0088FF', transition: 'height 0.13s ease' }} />
+}
+function Waveform() {
+  return (
+    <div style={{ display: 'flex', gap: 3, alignItems: 'center', height: 34, padding: '0 8px', flex: 1 }}>
+      {Array.from({ length: 26 }, (_, i) => <WaveBar key={i} delay={i * 60} />)}
+    </div>
+  )
 }
 
-const CatIcon = ({ cat }) => (
-  <img src={CAT_ICONS[cat] ?? IC_CAT_OTHER} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
-)
-
-function fmtAmt(n) {
-  return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+// ── Category icon ─────────────────────────────────────────────────────────────
+function CatIcon({ cat }) {
+  return <img src={CAT_ICONS[cat] || CAT_ICONS.other} alt="" style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'block' }} />
 }
 
-// ── Main screen ───────────────────────────────────────────────────────────────
-export default function AssistantScreen({ onBack, userId, accounts = [] }) {
-  const [uiState,   setUiState]   = useState('empty')
-  const [inputText, setInputText] = useState('')
-  const [recording, setRecording] = useState(false)
-  const [messages,  setMessages]  = useState([])
-  const [editItem,  setEditItem]  = useState(null)
-  const scrollRef    = useRef(null)
-  const inputRef     = useRef(null)
-  const fileRef      = useRef(null)
-  const mediaRef     = useRef(null)   // MediaRecorder instance
-  const chunksRef    = useRef([])     // recorded audio chunks
-  const cancelledRef = useRef(false)  // true = discard audio on stop
+// ── Shared styles ─────────────────────────────────────────────────────────────
+const SF = "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif"
+const pillBtn = {
+  width: 60, height: 45, borderRadius: 999,
+  background: '#1C1C1E', border: 'none', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+}
+const circBtn = {
+  width: 42, height: 42, borderRadius: 999, flexShrink: 0,
+  background: '#1C1C1E', border: 'none', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
+export default function AssistantScreen({ onBack }) {
+  const [messages,   setMessages]   = useState([])
+  const [inputText,  setInputText]  = useState('')
+  const [thinking,   setThinking]   = useState(false)
+  const [recording,  setRecording]  = useState(false)
+  const [editItem,   setEditItem]   = useState(null)
+  const scrollRef     = useRef(null)
+  const inputRef      = useRef(null)
+  const fileRef       = useRef(null)
+  const recogRef      = useRef(null)
+  const transcriptRef = useRef('')
+
+  const isEmpty = messages.length === 0 && !thinking
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, uiState])
+  }, [messages, thinking])
 
-  // ── Add all to DB ───────────────────────────────────────────────────────────
-  const addAll = useCallback(async (msgId, items) => {
-    const body = {
-      user_id: Number(userId),
-      source: 'ai',
-      items: items.map(item => ({
-        category_key: item.cat && item.cat !== 'other' ? item.cat : null,
-        type: 'expense',
-        amount: Math.round(Number(String(item.amount).replace(/\s/g, '').replace(/,/g, ''))) || 0,
-        note: item.note ? String(item.note) : null,
-        account_id: accounts.length > 0 ? Number(accounts[0].id) : null,
-      })),
-    }
-    const res = await fetch(`${API}/transactions/bulk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const detail = await res.json().catch(() => ({}))
-      console.error('[addAll] error:', detail)
-      return
-    }
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, added: true } : m))
-  }, [userId, accounts])
-
-  // ── Send text to AI ─────────────────────────────────────────────────────────
   const send = useCallback(async (text) => {
     if (!text.trim()) return
-    const userMsg = { id: Date.now(), role: 'user', text: text.trim() }
-    setMessages(prev => [...prev, userMsg])
+    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: text.trim() }])
     setInputText('')
-    setUiState('thinking')
-
+    setThinking(true)
     try {
-      const res = await fetch(`${API}/text_separate`, {
+      const res = await fetch(`${API}/parse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text.trim() }),
+        body: JSON.stringify({ text }),
       })
-      const data = await res.json()
-      const items = Array.isArray(data.result) ? data.result.map((item, i) => ({
-        ...item,
-        id:  Date.now() + i,
-        cat: item.category || item.cat || 'other',
-      })) : []
-      const aiMsg = {
-        id: Date.now() + 1,
-        role: 'ai',
+      const items = res.ok ? await res.json() : mockParse(text)
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', items,
         text: items.length > 0
-          ? 'Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko\'ring'
-          : 'Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.',
-        items,
-      }
-      setMessages(prev => [...prev, aiMsg])
-    } catch (e) {
-      console.error('[send] error:', e)
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1, role: 'ai',
-        text: 'Xatolik yuz berdi. Internet aloqasini tekshiring.',
-        items: [],
+          ? `Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko'ring`
+          : `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
+      }])
+    } catch {
+      const items = mockParse(text)
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', items,
+        text: items.length > 0
+          ? `Tayyor. Xarajatlarni tayyorladim, iltimos, hisob raqami va narxni yana bir bor tekshirib ko'ring`
+          : `Kechirasiz, xarajatlarni aniqlay olmadim. Iltimos qaytadan yozing.`,
       }])
     }
-    setUiState('result')
+    setThinking(false)
   }, [])
 
-  // ── Voice recording (MediaRecorder → /transcribe_audio → /text_separate) ───
-  const startRecording = useCallback(async (e) => {
+  const startRecording = useCallback((e) => {
     e?.preventDefault()
-    if (recording) return
-    let stream
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    } catch {
-      alert('Mikrofonga ruxsat berilmadi.')
-      return
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { alert('Голосовой ввод не поддерживается'); return }
+    transcriptRef.current = ''
+    const recog = new SR()
+    recog.lang = 'uz-UZ'; recog.interimResults = true; recog.continuous = true
+    recog.onresult = ev => {
+      const t = Array.from(ev.results).map(r => r[0].transcript).join('')
+      transcriptRef.current = t; setInputText(t)
     }
-    cancelledRef.current = false
-    chunksRef.current = []
-    const mr = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '' })
-    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-    mr.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop())
-      if (cancelledRef.current) return  // user cancelled — discard
-      const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
-      setUiState('thinking')
-      setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: '🎙 Voice message' }])
-      try {
-        const form = new FormData()
-        form.append('file', blob, 'audio.webm')
-        const r1 = await fetch(`${API}/transcribe_audio`, { method: 'POST', body: form })
-        const d1 = await r1.json()
-        const transcript = d1.result?.trim() ?? ''
-        if (!transcript) throw new Error('empty transcript')
-        await send(transcript)
-      } catch (err) {
-        console.error('[voice] error:', err)
-        setMessages(prev => [...prev, {
-          id: Date.now() + 1, role: 'ai',
-          text: 'Ovozni tanib bo\'lmadi. Qaytadan urinib ko\'ring.',
-          items: [],
-        }])
-        setUiState('result')
-      }
+    recog.onend = () => {
+      setRecording(false); recogRef.current = null
+      const t = transcriptRef.current.trim()
+      if (t) { send(t); setInputText(''); transcriptRef.current = '' }
     }
-    mr.start()
-    mediaRef.current = mr
-    setRecording(true)
-    if (uiState === 'empty') setUiState('chat')
-  }, [recording, send, uiState])
+    recog.onerror = () => { setRecording(false); recogRef.current = null }
+    recog.start(); recogRef.current = recog; setRecording(true)
+    const up = () => { window.removeEventListener('pointerup', up); recogRef.current?.stop() }
+    window.addEventListener('pointerup', up)
+  }, [send])
 
-  const stopRecording = useCallback(() => {
-    if (mediaRef.current?.state === 'recording') mediaRef.current.stop()
-    setRecording(false)
-  }, [])
-
-  const cancelRecording = useCallback(() => {
-    cancelledRef.current = true
-    if (mediaRef.current?.state === 'recording') mediaRef.current.stop()
-    setRecording(false)
+  const addAll = useCallback((msgId) => {
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, added: true } : m))
   }, [])
 
   if (editItem) return <EditItemScreen item={editItem} onBack={() => setEditItem(null)} />
 
-  const isEmpty    = uiState === 'empty'
-  const isThinking = uiState === 'thinking'
-
   return (
-    <div data-file="src/screens/AssistantScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
 
-      {/* Top Nav */}
+      {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
       <div style={{
-        padding: '0 16px', paddingTop: 'var(--safe-top)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: 'calc(var(--safe-top) + 62px)', flexShrink: 0, zIndex: 5,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+        paddingTop: 'var(--safe-top, env(safe-area-inset-top, 44px))',
+        height: 'calc(var(--safe-top, env(safe-area-inset-top, 44px)) + 52px)',
+        flexShrink: 0,
       }}>
-        <button onClick={onBack} style={{
-          width: 60, height: 45, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
-            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+        <button onClick={onBack} style={pillBtn}>
+          <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex', alignItems: 'center' }}>
+            <img src={IC_BACK} alt="" style={{ width: 32, height: 32, display: 'block' }} />
           </div>
         </button>
         <span style={{ fontSize: 17, color: '#fff', letterSpacing: '-0.43px' }}>New chat</span>
-        <button style={{
-          width: 60, height: 45, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', color: 'rgba(255,255,255,0.6)',
-          fontSize: 16, cursor: 'pointer',
-        }}>≡</button>
+        <button style={pillBtn}>
+          <div style={{ mixBlendMode: 'plus-lighter', display: 'flex', alignItems: 'center' }}>
+            <img src={IC_LIST} alt="" style={{ width: 32, height: 32, display: 'block' }} />
+          </div>
+        </button>
       </div>
 
-      {/* Content area */}
+      {/* ── Content ──────────────────────────────────────────────────────────── */}
       {isEmpty ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', gap: 12 }}>
-          <SparkIcon />
-          <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.45px', color: '#fff', textAlign: 'center' }}>
+          <img src={IC_SPARK_LG} alt="" style={{ width: 80, height: 80, display: 'block' }} />
+          <div style={{ fontSize: 20, fontWeight: 510, letterSpacing: '-0.45px', color: '#fff', textAlign: 'center', lineHeight: '25px' }}>
             Add expenses in one message
           </div>
-          <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', letterSpacing: '-0.23px', textAlign: 'center' }}>
+          <div style={{ fontSize: 15, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.23px', textAlign: 'center', lineHeight: '20px' }}>
             Type, speak, or attach a receipt screenshot
           </div>
-          <button style={{
-            marginTop: 8, height: 40, borderRadius: 999,
-            background: '#fff', color: '#1A1B1B',
-            fontSize: 16, fontWeight: 500, padding: '0 20px',
-            border: 'none', cursor: 'pointer',
-          }}>
+          <button
+            onClick={() => fileRef.current?.click()}
+            style={{ marginTop: 8, height: 40, borderRadius: 999, background: '#fff', color: '#1A1B1B', fontSize: 16, fontWeight: 510, padding: '0 20px', border: 'none', cursor: 'pointer', letterSpacing: '-0.4px', fontFamily: SF }}
+          >
             Upload photo
           </button>
         </div>
       ) : (
-        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 0, scrollbarWidth: 'none' }}>
+        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', scrollbarWidth: 'none' }}>
           {messages.map(msg => (
             <div key={msg.id}>
               {msg.role === 'user' ? (
+                /* User bubble — white, right */
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, paddingLeft: 64 }}>
-                  <div style={{
-                    background: '#fff', color: '#000',
-                    padding: '8px 10px', borderRadius: 16,
-                    fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px',
-                    position: 'relative',
-                  }}>
-                    {msg.text}
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ background: '#fff', color: '#000', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
+                      {msg.text}
+                    </div>
                     <div style={{ position: 'absolute', bottom: -1, right: -4, width: 16, height: 17, overflow: 'hidden' }}>
                       <svg viewBox="0 0 16 17" width="16" height="17"><path d="M16 17 Q0 17 0 0 L16 0Z" fill="white"/></svg>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16, paddingRight: 64 }}>
+                /* AI message */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18, paddingRight: 64 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                     <AIAvatar />
-                    <div style={{
-                      background: '#1C1C1E', color: '#fff',
-                      padding: '8px 10px', borderRadius: 16,
-                      fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px',
-                      position: 'relative',
-                    }}>
-                      {msg.text}
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ background: '#1C1C1E', color: '#fff', padding: '8px 10px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.75px', lineHeight: '22px' }}>
+                        {msg.text}
+                      </div>
                       <div style={{ position: 'absolute', bottom: -1, left: -4, width: 16, height: 17, overflow: 'hidden' }}>
                         <svg viewBox="0 0 16 17" width="16" height="17"><path d="M0 17 Q16 17 16 0 L0 0Z" fill="#1C1C1E"/></svg>
                       </div>
                     </div>
                   </div>
 
+                  {/* Expense rows */}
                   {msg.items?.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
                       {msg.items.map(item => {
                         const meta = CATEGORY_META[item.cat] || CATEGORY_META.other
                         return (
-                          <div key={item.id} style={{
+                          <div key={item.id} onClick={() => setEditItem(item)} style={{
                             background: '#1C1C1E', borderRadius: 20, height: 64,
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '0 12px', cursor: 'pointer',
-                          }} onClick={() => setEditItem(item)}>
+                          }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <CatIcon cat={item.cat} />
-                              <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '-0.5px', color: '#fff' }}>
-                                {item.note || meta.label}
+                              <span style={{ fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', lineHeight: '21px' }}>
+                                {meta.label}
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: 15, fontWeight: 500, color: '#fff', letterSpacing: '-0.75px' }}>
-                                  -{fmtAmt(item.amount)} <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>sums</span>
+                                <div style={{ fontSize: 15, fontWeight: 510, letterSpacing: '-0.75px', color: '#fff', lineHeight: '20px' }}>
+                                  -{fmt(item.amount)}{' '}
+                                  <span style={{ fontSize: 13, color: 'rgba(235,235,245,0.6)', fontWeight: 400 }}>sums</span>
                                 </div>
-                                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                                  {accounts[0]?.name ?? ''}
+                                <div style={{ fontSize: 13, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.5px', lineHeight: '18px' }}>
+                                  {item.account}
                                 </div>
                               </div>
-                              <div style={{
-                                width: 28, height: 28, borderRadius: 8,
-                                background: 'rgba(118,118,128,0.24)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 13,
-                              }}>✎</div>
+                              <img src={IC_EDIT} alt="" style={{ width: 28, height: 28, display: 'block', flexShrink: 0 }} />
                             </div>
                           </div>
                         )
                       })}
 
                       {!msg.added ? (
-                        <button onClick={() => addAll(msg.id, msg.items)} style={{
+                        <button onClick={() => addAll(msg.id)} style={{
                           width: '100%', height: 60, borderRadius: 999,
-                          background: '#0088FF', border: 'none', color: '#fff',
-                          fontSize: 17, fontWeight: 500, cursor: 'pointer',
-                          letterSpacing: '-0.43px', marginTop: 2,
+                          background: '#0091FF', border: 'none', color: '#fff',
+                          fontSize: 17, fontWeight: 510, letterSpacing: '-0.4px',
+                          cursor: 'pointer', marginTop: 2, fontFamily: SF,
                         }}>
-                          Add {msg.items.length} Transaction{msg.items.length > 1 ? 's' : ''}
+                          Add {msg.items.length} Transaction{msg.items.length !== 1 ? 's' : ''}
                         </button>
                       ) : (
-                        <div style={{ textAlign: 'center', padding: '10px', fontSize: 15, color: '#00E8B3', letterSpacing: '-0.3px' }}>
+                        <div style={{ textAlign: 'center', padding: 10, fontSize: 15, color: '#00E8B3', letterSpacing: '-0.3px' }}>
                           ✓ Added to history
                         </div>
                       )}
@@ -374,15 +326,14 @@ export default function AssistantScreen({ onBack, userId, accounts = [] }) {
             </div>
           ))}
 
-          {isThinking && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, paddingRight: 64 }}>
+          {/* Thinking state */}
+          {thinking && (
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, paddingRight: 64, marginBottom: 16 }}>
               <AIAvatar />
-              <div style={{
-                background: '#1C1C1E', color: 'rgba(255,255,255,0.6)',
-                padding: '8px 12px', borderRadius: 16,
-                fontSize: 17, letterSpacing: '-0.43px', position: 'relative',
-              }}>
-                <TypingDots />
+              <div style={{ position: 'relative' }}>
+                <div style={{ background: '#1C1C1E', color: 'rgba(235,235,245,0.6)', padding: '8px 12px', borderRadius: 16, fontSize: 17, letterSpacing: '-0.43px', lineHeight: '22px' }}>
+                  <TypingDots />
+                </div>
                 <div style={{ position: 'absolute', bottom: -1, left: -4, width: 16, height: 17, overflow: 'hidden' }}>
                   <svg viewBox="0 0 16 17" width="16" height="17"><path d="M0 17 Q16 17 16 0 L0 0Z" fill="#1C1C1E"/></svg>
                 </div>
@@ -392,89 +343,67 @@ export default function AssistantScreen({ onBack, userId, accounts = [] }) {
         </div>
       )}
 
-      {/* Write Bar */}
+      {/* ── Write Bar ────────────────────────────────────────────────────────── */}
+      <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }}
+        onChange={e => {
+          const f = e.target.files?.[0]
+          if (f) setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: `📎 ${f.name}` }])
+          e.target.value = ''
+        }}
+      />
       <div style={{
         flexShrink: 0, display: 'flex', alignItems: 'flex-end', gap: 6,
         padding: '4px 16px',
-        paddingBottom: 'calc(var(--safe-bottom) + 8px)',
+        paddingBottom: 'calc(var(--safe-bottom, env(safe-area-inset-bottom, 0px)) + 8px)',
       }}>
-        <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }}
-          onChange={e => {
-            const file = e.target.files?.[0]
-            if (file) {
-              setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: `📎 ${file.name}` }])
-              if (uiState === 'empty') setUiState('chat')
-            }
-            e.target.value = ''
-          }}
-        />
-
-        {/* Left: cancel (red) when recording, attach (+) otherwise */}
-        <button
-          onClick={recording ? cancelRecording : () => fileRef.current?.click()}
-          style={{
-            width: 42, height: 42, borderRadius: 999, flexShrink: 0,
-            background: recording ? '#FF3B30' : '#1C1C1E',
-            border: 'none', color: '#fff',
-            fontSize: 22, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background 0.2s',
-          }}
-        >
-          {recording ? '✕' : '+'}
+        <button onClick={() => fileRef.current?.click()} style={circBtn}>
+          <img src={IC_ATTACH} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter' }} />
         </button>
 
-        {/* Middle: input or waveform */}
-        <div style={{
-          flex: 1, minHeight: 42, borderRadius: 21,
-          background: '#1C1C1E', display: 'flex', alignItems: 'center', padding: '3px',
-        }}>
+        <div style={{ flex: 1, minHeight: 42, borderRadius: 21, background: '#1C1C1E', display: 'flex', alignItems: 'center', padding: 3 }}>
           {recording ? (
-            <div style={{ flex: 1, padding: '0 10px', display: 'flex', alignItems: 'center', height: 36 }}>
-              <Waveform />
-            </div>
+            <Waveform />
           ) : (
             <input
               ref={inputRef}
               value={inputText}
-              onChange={e => {
-                setInputText(e.target.value)
-                if (uiState === 'empty' && e.target.value) setUiState('chat')
-              }}
+              onChange={e => setInputText(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(inputText)}
               placeholder="Add expense or ask"
               style={{
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: '#fff', fontSize: 17, letterSpacing: '-0.43px',
-                padding: '6px 10px 8px',
+                padding: '6px 10px 8px', fontFamily: SF,
               }}
             />
           )}
+          <button
+            onClick={inputText.trim() ? () => send(inputText) : undefined}
+            onPointerDown={!inputText.trim() ? startRecording : undefined}
+            style={{
+              width: 36, height: 36, borderRadius: 999, border: 'none',
+              background: recording ? '#FF3B30' : inputText.trim() ? '#0088FF' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'background 0.18s',
+              userSelect: 'none', WebkitUserSelect: 'none', flexShrink: 0,
+            }}
+          >
+            {inputText.trim() ? (
+              <span style={{ color: '#fff', fontSize: 20, lineHeight: 1 }}>↑</span>
+            ) : recording ? (
+              <span style={{ color: '#fff', fontSize: 14, lineHeight: 1 }}>◼</span>
+            ) : (
+              <img src={IC_MIC} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter' }} />
+            )}
+          </button>
         </div>
-
-        {/* Right: stop (◼) when recording, send (↑) when text, mic (🎙) otherwise */}
-        <button
-          onClick={recording ? stopRecording : inputText.trim() ? () => send(inputText) : undefined}
-          onPointerDown={!recording && !inputText.trim() ? startRecording : undefined}
-          style={{
-            width: 42, height: 42, borderRadius: 999, flexShrink: 0,
-            background: recording ? '#0088FF' : inputText.trim() ? '#0088FF' : '#1C1C1E',
-            border: 'none', color: '#fff',
-            fontSize: inputText.trim() ? 20 : 18, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background 0.2s',
-            userSelect: 'none', WebkitUserSelect: 'none',
-          }}
-        >
-          {recording ? '◼' : inputText.trim() ? '↑' : '🎙'}
-        </button>
       </div>
     </div>
   )
 }
 
-// ── Edit single expense item ───────────────────────────────────────────────────
-const NUMPAD_ROWS = [
+// ── Edit Item Screen ───────────────────────────────────────────────────────────
+const NUMPAD = [
   ['1','2','3','+'],
   ['4','5','6','−'],
   ['7','8','9','×'],
@@ -486,26 +415,26 @@ function EditItemScreen({ item, onBack }) {
   const [digits, setDigits] = useState(String(item.amount))
 
   function tap(k) {
-    if (k === '⌫') setDigits(d => d.slice(0, -1) || '0')
+    if (k === '⌫') setDigits(d => d.slice(0,-1) || '0')
     else if (['+','−','×','÷'].includes(k)) return
     else if (k === ',') setDigits(d => d.includes(',') ? d : d + ',')
     else setDigits(d => d === '0' ? k : d + k)
   }
 
+  const display = parseInt(digits.replace(',',''), 10)
+
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
+      {/* Toolbar */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', paddingTop: 'var(--safe-top)',
-        height: 'calc(var(--safe-top) + 62px)', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+        paddingTop: 'var(--safe-top, env(safe-area-inset-top, 44px))',
+        height: 'calc(var(--safe-top, env(safe-area-inset-top, 44px)) + 52px)',
+        flexShrink: 0,
       }}>
-        <button onClick={onBack} style={{
-          width: 60, height: 45, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
-            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+        <button onClick={onBack} style={pillBtn}>
+          <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex' }}>
+            <img src={IC_BACK} alt="" style={{ width: 32, height: 32, display: 'block' }} />
           </div>
         </button>
         <div style={{ display: 'flex', background: '#1C1C1E', borderRadius: 999, padding: 4, gap: 2 }}>
@@ -519,62 +448,64 @@ function EditItemScreen({ item, onBack }) {
             }}>{ic}</div>
           ))}
         </div>
-        <button style={{
-          width: 44, height: 44, borderRadius: 999,
-          background: '#1C1C1E', border: 'none', color: 'rgba(255,255,255,0.6)',
-          fontSize: 18, cursor: 'pointer',
-        }}>•••</button>
+        <button style={pillBtn}>
+          <div style={{ mixBlendMode: 'plus-lighter', display: 'flex' }}>
+            <img src={IC_LIST} alt="" style={{ width: 32, height: 32, display: 'block' }} />
+          </div>
+        </button>
       </div>
 
+      {/* Amount */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>
-          {item.note || meta.label}
-        </div>
+        <div style={{ fontSize: 16, color: 'rgba(235,235,245,0.6)', marginBottom: 8, letterSpacing: '-0.43px' }}>New expense</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, color: '#fff', letterSpacing: '-0.6px' }}>
-            -{parseInt(digits.replace(',', ''), 10).toLocaleString('ru').replace(/,/g, ' ')}
+          <span style={{ fontSize: 48, fontWeight: 700, color: '#fff', letterSpacing: '-0.6px', lineHeight: 1 }}>
+            -{isNaN(display) ? 0 : fmt(display)}
           </span>
-          <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.6)' }}>sums</span>
+          <span style={{ fontSize: 20, color: 'rgba(235,235,245,0.6)' }}>sums</span>
         </div>
       </div>
 
-      <div style={{ padding: '0 16px', paddingBottom: 'calc(var(--safe-bottom) + 32px)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Bottom panel */}
+      <div style={{ padding: '0 16px', paddingBottom: 'calc(var(--safe-bottom, env(safe-area-inset-bottom, 0px)) + 32px)', display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {[['📅','Today'],['🍴', meta.label],['💳','Account']].map(([ic, lb]) => (
+          {[['📅','Today'],['🍽', meta.label],['💳','TBC']].map(([ic, lb]) => (
             <button key={lb} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '12px 14px',
               borderRadius: 999, flexShrink: 0, background: 'rgba(118,118,128,0.24)',
-              border: 'none', color: '#fff', fontSize: 17, fontWeight: 500, cursor: 'pointer',
-            }}>{ic} {lb} <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>⌄</span></button>
+              border: 'none', color: '#fff', fontSize: 17, fontWeight: 510,
+              fontFamily: SF, cursor: 'pointer', letterSpacing: '-0.43px',
+            }}>
+              {ic} {lb} <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>⌄</span>
+            </button>
           ))}
         </div>
-        <div style={{
-          height: 50, borderRadius: 16, background: 'rgba(118,118,128,0.24)',
-          display: 'flex', alignItems: 'center', padding: '0 16px',
-          color: 'rgba(255,255,255,0.6)', fontSize: 17,
-        }}>Note</div>
-        {NUMPAD_ROWS.map((row, ri) => (
+
+        <div style={{ height: 50, borderRadius: 16, background: 'rgba(118,118,128,0.24)', display: 'flex', alignItems: 'center', padding: '0 16px', color: 'rgba(255,255,255,0.6)', fontSize: 17, fontFamily: SF }}>
+          Note
+        </div>
+
+        {NUMPAD.map((row, ri) => (
           <div key={ri} style={{ display: 'flex', gap: 2 }}>
             {row.map(k => {
               const isPill = ['⌫','+','−','×','÷'].includes(k)
               return (
                 <button key={k} onClick={() => tap(k)} style={{
-                  flex: 1, height: 60, border: 'none', cursor: 'pointer',
-                  borderRadius: isPill ? 999 : 16,
-                  background: 'rgba(118,118,128,0.24)',
-                  color: '#fff', fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
+                  flex: 1, height: 60, borderRadius: isPill ? 999 : 16,
+                  background: 'rgba(118,118,128,0.24)', border: 'none',
+                  color: '#fff', fontSize: 20, fontWeight: 500,
+                  cursor: 'pointer', fontFamily: SF,
                 }}>{k}</button>
               )
             })}
           </div>
         ))}
+
         <button onClick={onBack} style={{
-          height: 60, borderRadius: 999, border: 'none',
-          background: '#fff', color: '#1A1B1B',
-          fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
-        }}>
-          Save
-        </button>
+          height: 60, borderRadius: 999, background: '#fff',
+          border: 'none', color: '#1A1B1B', fontSize: 17,
+          fontWeight: 510, cursor: 'pointer', letterSpacing: '-0.43px', fontFamily: SF,
+        }}>Save</button>
       </div>
     </div>
   )
