@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Home, UtensilsCrossed, Globe, Shirt, Car, Gamepad2, ShoppingCart, MoreHorizontal, PlusCircle } from 'lucide-react'
 
 // ── Figma SVG assets ─────────────────────────────────────────────────────────
 const IC_TYPE_ADD = 'https://www.figma.com/api/mcp/asset/0bbb37ae-99ec-4eef-a610-3182faf1e6cb'
@@ -11,17 +12,6 @@ const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c
 const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
 const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
 
-// ── Category icon assets (local SVG) ─────────────────────────────────────────
-import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
-import IC_CAT_MEAL          from '../assets/icons/categories/meal.svg'
-import IC_CAT_GLOBE         from '../assets/icons/categories/web.svg'
-import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
-import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
-import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
-import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
-import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
-import IC_CAT_PLUS          from '../assets/icons/categories/plus.svg'
-
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
   { key: 'Expense',  icon: IC_TYPE_ADD },
@@ -30,16 +20,15 @@ const NAV_TYPES = [
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
 
-// iw/ih = exact icon pixel dimensions at 40px container size (from Figma)
 const CATEGORIES = [
-  { key: 'other',    label: 'Other',     color: '#8E8E93', icon: IC_CAT_OTHER,         iw: 14.578, ih: 2.961  },
-  { key: 'grocery',  label: 'Grocery',   color: '#FF383C', icon: IC_CAT_GROCERY,       iw: 22.539, ih: 19.199 },
-  { key: 'transport',label: 'Transport', color: '#34C759', icon: IC_CAT_TRANSPORT,      iw: 27.836, ih: 12.57  },
-  { key: 'clothing', label: 'Clothing',  color: '#FF8D28', icon: IC_CAT_CLOTHING,       iw: 25.72,  ih: 21.27  },
-  { key: 'meal',     label: 'Meal',      color: '#6155F5', icon: IC_CAT_MEAL,           iw: 13.425, ih: 22.646 },
-  { key: 'web',      label: 'Web',       color: '#FF2D55', icon: IC_CAT_GLOBE,          iw: 19.883, ih: 19.727 },
-  { key: 'home',     label: 'Home',      color: '#0088FF', icon: IC_CAT_HOUSE,          iw: 23.32,  ih: 20.537 },
-  { key: 'gaming',   label: 'Gaming',    color: '#FF2D55', icon: IC_CAT_ENTERTAINMENT,  iw: 28.193, ih: 17.695 },
+  { key: 'other',    label: 'Other',     color: '#8E8E93', Icon: MoreHorizontal  },
+  { key: 'grocery',  label: 'Grocery',   color: '#FF383C', Icon: ShoppingCart    },
+  { key: 'transport',label: 'Transport', color: '#34C759', Icon: Car             },
+  { key: 'clothing', label: 'Clothing',  color: '#FF8D28', Icon: Shirt           },
+  { key: 'meal',     label: 'Meal',      color: '#6155F5', Icon: UtensilsCrossed },
+  { key: 'web',      label: 'Web',       color: '#FF2D55', Icon: Globe           },
+  { key: 'home',     label: 'Home',      color: '#0088FF', Icon: Home            },
+  { key: 'gaming',   label: 'Gaming',    color: '#FF2D55', Icon: Gamepad2        },
 ]
 
 // [label, isPill]
@@ -196,7 +185,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
           {/* Category chip — dynamic */}
           <button onClick={() => setShowPicker(true)} style={chipStyle}>
-            <CategoryIconMini color={category.color} icon={category.icon} iw={category.iw} ih={category.ih} />
+            <CategoryIconMini color={category.color} Icon={category.Icon} />
             {category.label}
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
@@ -273,45 +262,31 @@ const chipStyle = {
   color: '#fff', fontSize: 17, fontWeight: 510,
 }
 
-// ── Category icon — matches Figma structure exactly ───────────────────────────
-// Figma: colored bg → fill-div (mix-blend-screen, overflow hidden) → icon (mix-blend-plus-lighter, exact px size)
-function CategoryIcon({ color, icon, iw, ih, size = 40, radius = 12 }) {
-  const scale = size / 40
+// ── Category icon ─────────────────────────────────────────────────────────────
+function CategoryIcon({ color, Icon, size = 40, radius = 12 }) {
+  const iconSize = Math.round(size * 0.55)
   return (
     <div style={{
       width: size, height: size, borderRadius: radius, background: color,
       position: 'relative', overflow: 'hidden', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      {/* gradient fill — mix-blend-screen over the colored bg */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {/* icon — mix-blend-plus-lighter over the gradient */}
-        <img
-          src={icon}
-          alt=""
-          style={{
-            display: 'block',
-            width: iw * scale,
-            height: ih * scale,
-            mixBlendMode: 'plus-lighter',
-            flexShrink: 0,
-          }}
-        />
-      </div>
+        mixBlendMode: 'screen',
+      }} />
+      <Icon size={iconSize} color="white" strokeWidth={2} style={{ mixBlendMode: 'plus-lighter', position: 'relative' }} />
     </div>
   )
 }
 
-function CategoryIconMini({ color, icon, iw, ih }) {
-  return <CategoryIcon color={color} icon={icon} iw={iw} ih={ih} size={28} radius={8} />
+function CategoryIconMini({ color, Icon }) {
+  return <CategoryIcon color={color} Icon={Icon} size={28} radius={8} />
 }
 
-function CategoryIconFull({ color, icon, iw, ih }) {
-  return <CategoryIcon color={color} icon={icon} iw={iw} ih={ih} size={40} radius={12} />
+function CategoryIconFull({ color, Icon }) {
+  return <CategoryIcon color={color} Icon={Icon} size={40} radius={12} />
 }
 
 // ── Category Picker ───────────────────────────────────────────────────────────
@@ -367,7 +342,7 @@ function CategoryPicker({ selected, onSelect, onClose }) {
                 borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <CategoryIconFull color={cat.color} icon={cat.icon} iw={cat.iw} ih={cat.ih} />
+              <CategoryIconFull color={cat.color} Icon={cat.Icon} />
               <span style={{
                 flex: 1, textAlign: 'left',
                 fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -401,7 +376,7 @@ function CategoryPicker({ selected, onSelect, onClose }) {
               background: 'rgba(0,136,255,0.15)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <img src={IC_CAT_PLUS} alt="+" style={{ width: 24, height: 24, mixBlendMode: 'plus-lighter' }} />
+              <PlusCircle size={24} color="#0088FF" />
             </div>
             <span style={{
               fontFamily: "'SF Pro', -apple-system, sans-serif",
