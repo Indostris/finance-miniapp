@@ -1,62 +1,49 @@
-import React, { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
 import AssistantScreen  from './AssistantScreen'
 
-// ── Local assets ──────────────────────────────────────────────────────────────
-import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
-import IC_CAT_GLOBE         from '../assets/icons/categories/web.svg'
-import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
-import IC_CAT_TAXI          from '../assets/icons/categories/transport.svg'
+// ── Icons ─────────────────────────────────────────────────────────────────────
+import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
+import IC_CAT_TRANSPORT    from '../assets/icons/categories/transport.svg'
+import IC_CAT_GROCERY      from '../assets/icons/categories/grocery.svg'
+import IC_CAT_HOME         from '../assets/icons/categories/house.svg'
+import IC_CAT_CLOTHING     from '../assets/icons/categories/clothing.svg'
 import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
-import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
-import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
-import IC_TAB_HOME      from '../assets/icons/tabs/home.svg'
-import IC_TAB_ASSISTANT from '../assets/icons/tabs/assistant.svg'
-import IC_TAB_BUDGET    from '../assets/icons/tabs/budget.svg'
-import IC_TAB_ANALYTICS from '../assets/icons/tabs/analytics.svg'
-import IC_FAB_PLUS      from '../assets/icons/ui/fab-plus.svg'
-import IC_PROFILE       from '../assets/icons/ui/profile.svg'
-import IC_SETTINGS      from '../assets/icons/ui/settings.svg'
+import IC_CAT_SHOPPING     from '../assets/icons/categories/web.svg'
+import IC_CAT_OTHER        from '../assets/icons/categories/other.svg'
+import IC_TAB_HOME      from '../assets/icons/ic_tab_home.svg'
+import IC_TAB_ASSISTANT from '../assets/icons/ic_tab_assistant.svg'
+import IC_TAB_BUDGET    from '../assets/icons/ic_tab_budget.svg'
+import IC_TAB_ANALYTICS from '../assets/icons/ic_tab_analytics.svg'
+import IC_FAB_PLUS      from '../assets/icons/ic_fab_plus.svg'
+import IC_PROFILE       from '../assets/icons/ic_profile.svg'
+import IC_SETTINGS      from '../assets/icons/ic_settings.svg'
 
-// ── Category icon definitions (icon url + exact inner px from Figma) ──────────
-const CAT = {
-  Grocery:       { url: IC_CAT_GROCERY       },
-  Other:         { url: IC_CAT_OTHER         },
-  Taxi:          { url: IC_CAT_TAXI          },
-  Clothing:      { url: IC_CAT_CLOTHING      },
-  Entertainment: { url: IC_CAT_ENTERTAINMENT },
-  House:         { url: IC_CAT_HOUSE         },
-  Globe:         { url: IC_CAT_GLOBE         },
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+
+// ── Inject rolling digit keyframes once ───────────────────────────────────────
+if (typeof document !== 'undefined' && !document.getElementById('droll-kf')) {
+  const s = document.createElement('style')
+  s.id = 'droll-kf'
+  s.textContent =
+    '@keyframes dRollUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}' +
+    '@keyframes dRollDown{from{transform:translateY(-50%)}to{transform:translateY(0)}}'
+  document.head.appendChild(s)
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-const CARDS = [
-  { id: 0, title: 'Add spending limits',  desc: 'Set limits for key categories. This helps you keep spending under control.' },
-  { id: 1, title: 'Connect your bank',    desc: 'Link your bank account and let AI categorise transactions automatically.' },
-]
-
-const TX_GROUPS = [
-  { id: 0, date: 'Thu, Sep 12', total: '-480 000 sums', items: [
-    { id: 0, title: 'Groceries',  sub: 'TBC Salom', amount: '- 128 000', cat: 'Grocery', color: '#FF4244' },
-    { id: 1, title: 'Other',      sub: 'TBC Salom', amount: '-128 000',  cat: 'Other',   color: '#8E8E93' },
-  ]},
-  { id: 1, date: 'Thu, Sep 11', total: '-480 000 sums, +129 000 sums', items: [
-    { id: 0, title: 'Groceries',   sub: 'TBC Salom', amount: '-128 000', cat: 'Grocery', color: '#FF4244' },
-    { id: 1, title: 'Web service', sub: 'TBC Salom', amount: '128 000',  cat: 'Taxi',    color: '#30D158' },
-  ]},
-]
-
-const LIMITS = [
-  { id: 0, title: 'Clothing',      detail: '1 500 000 of 4 000 000 left', cat: 'Clothing',      color: '#FF9530', progress: 0.625 },
-  { id: 1, title: 'Entertainment', detail: '1 500 000 of 4 000 000 left', cat: 'Entertainment', color: '#FF375F', progress: 0.625 },
-  { id: 2, title: 'Housing',       detail: '1 500 000 of 4 000 000 left', cat: 'House',          color: '#0091FF', progress: 0.35  },
-  { id: 3, title: 'Taxi',          detail: '1 500 000 of 4 000 000 left', cat: 'Taxi',           color: '#30D158', progress: 0.18  },
-]
-
-const BILLS = [
-  { id: 0, title: 'Housing',     sub: 'Billz • 30 March', amount: '28 000', cat: 'House', color: '#0091FF' },
-  { id: 1, title: 'Web service', sub: 'Billz • 30 March', amount: '28 000', cat: 'Globe', color: '#FF375F' },
-]
+const CAT_ICONS = {
+  food:          IC_CAT_FOOD,
+  transport:     IC_CAT_TRANSPORT,
+  grocery:       IC_CAT_GROCERY,
+  home:          IC_CAT_HOME,
+  clothing:      IC_CAT_CLOTHING,
+  entertainment: IC_CAT_ENTERTAINMENT,
+  shopping:      IC_CAT_SHOPPING,
+  utilities:     IC_CAT_OTHER,
+  health:        IC_CAT_OTHER,
+  education:     IC_CAT_OTHER,
+  other:         IC_CAT_OTHER,
+}
 
 const TABS = [
   { icon: IC_TAB_HOME,      label: 'Home'      },
@@ -65,27 +52,93 @@ const TABS = [
   { icon: IC_TAB_ANALYTICS, label: 'Analytics' },
 ]
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-export default function HomeScreen() {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [cardPage,    setCardPage]    = useState(0)
-  const [showMenu,    setShowMenu]    = useState(false)
-  const [addType,     setAddType]     = useState(null)
-  const [showAI,      setShowAI]      = useState(false)
-  const carouselRef = useRef(null)
+function fmtAmt(n) {
+  return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}
 
-  function handleScroll(e) {
-    const el = e.currentTarget
-    setCardPage(Math.round(el.scrollLeft / 318))
+function groupByDate(txs) {
+  const map = {}
+  for (const tx of txs) {
+    const key = (tx.date ?? tx.created_at?.split('T')[0]) || 'Unknown'
+    if (!map[key]) map[key] = []
+    map[key].push(tx)
+  }
+  return Object.entries(map)
+    .sort(([a], [b]) => (a > b ? -1 : 1))
+    .map(([date, items]) => ({ date, items }))
+}
+
+function fmtDateLabel(s) {
+  if (!s || s === 'Unknown') return 'Unknown'
+  try {
+    return new Date(s + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  } catch { return s }
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+export default function HomeScreen({ userId }) {
+  const [selectedTab,  setSelectedTab]  = useState(0)
+  const [addType,      setAddType]      = useState(null)
+  const [showAI,       setShowAI]       = useState(false)
+  const [showMenu,     setShowMenu]     = useState(false)
+  const [transactions, setTransactions] = useState([])
+  const [accounts,     setAccounts]     = useState([])
+  const [categories,   setCategories]   = useState([])
+
+  function fetchData() {
+    Promise.all([
+      fetch(`${API_BASE}/users/${userId}/transactions`).then(r => r.json()),
+      fetch(`${API_BASE}/users/${userId}/accounts`).then(r => r.json()),
+      fetch(`${API_BASE}/categories`).then(r => r.json()),
+    ]).then(([txs, accs, cats]) => {
+      setTransactions(Array.isArray(txs) ? txs : [])
+      setAccounts(Array.isArray(accs) ? accs : [])
+      setCategories(Array.isArray(cats) ? cats : [])
+    }).catch(console.error)
   }
 
-  if (addType) return <AddExpenseScreen type={addType} onClose={() => setAddType(null)} />
-  if (showAI)  return <AssistantScreen onBack={() => { setShowAI(false); setSelectedTab(0) }} />
+  useEffect(() => { fetchData() }, [userId])
+
+  // Build lookup maps
+  const catMap = {}
+  for (const c of categories) catMap[c.id] = c
+  const accMap = {}
+  for (const a of accounts) accMap[a.id] = a
+
+  // Monthly totals (current month)
+  const thisMonth = new Date().toISOString().slice(0, 7)
+  let monthIncome = 0, monthSpent = 0
+  for (const tx of transactions) {
+    const m = (tx.date ?? tx.created_at?.split('T')[0] ?? '').slice(0, 7)
+    if (m !== thisMonth) continue
+    if (tx.type === 'income')  monthIncome += Number(tx.amount)
+    if (tx.type === 'expense') monthSpent  += Number(tx.amount)
+  }
+
+  const txGroups = groupByDate(transactions)
+
+  if (addType) return (
+    <AddExpenseScreen
+      type={addType}
+      userId={userId}
+      accounts={accounts}
+      categories={categories}
+      onClose={() => setAddType(null)}
+      onAdd={fetchData}
+    />
+  )
+  if (showAI) return (
+    <AssistantScreen
+      userId={userId}
+      accounts={accounts}
+      onBack={() => { setShowAI(false); setSelectedTab(0); fetchData() }}
+    />
+  )
 
   return (
     <div data-file="src/screens/HomeScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
 
-      {/* Blue gradient background */}
+      {/* Blue gradient */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: '45%',
         background: 'linear-gradient(180deg, rgba(0,136,255,0.18) 0%, transparent 100%)',
@@ -99,15 +152,13 @@ export default function HomeScreen() {
           {/* Balance */}
           <div style={{ textAlign: 'center', padding: '0 66px 32px' }}>
             <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: '#fff', marginBottom: 2 }}>
-              Monthli income: 24,000,000 sums
+              Monthly income: {fmtAmt(monthIncome)} sums
             </div>
             <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: 'rgba(235,235,245,0.6)', marginBottom: 8 }}>
-              Budget: 16,000,000 sums • You spent:
+              You spent this month:
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
-              <span data-line="111" style={{ fontFamily: "'SF Pro Rounded', -apple-system, sans-serif", fontSize: 40, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '41px', color: '#fff' }}>
-                12,643,000
-              </span>
+              <RollingNumber value={monthSpent} size={40} weight={700} lineH={41} color="#fff" spacing="-0.6px" />
               <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px' }}>sums</span>
             </div>
           </div>
@@ -118,63 +169,33 @@ export default function HomeScreen() {
             <CTAButton title={`Add with AI \u{1001BF}`} blue={true} onClick={() => { setSelectedTab(1); setShowAI(true) }} />
           </div>
 
-          {/* Carousel */}
-          <div style={{ marginBottom: 24 }}>
-            <div
-              ref={carouselRef}
-              onScroll={handleScroll}
-              style={{
-                display: 'flex', gap: 8, overflowX: 'auto', scrollSnapType: 'x mandatory',
-                paddingLeft: 16, paddingRight: 16,
-                scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              {CARDS.map(c => <SuggestionCard key={c.id} card={c} />)}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
-              {CARDS.map((_, i) => (
-                <div key={i} style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: i === cardPage ? '#fff' : 'rgba(255,255,255,0.3)',
-                  transition: 'background 0.2s',
-                }} />
-              ))}
-            </div>
-          </div>
-
           {/* Recent Transactions */}
           <SectionHeader title="Recent transactions" />
-          <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {TX_GROUPS.map(g => <TxGroup key={g.id} group={g} />)}
-          </div>
-
-          {/* Limits */}
-          <SectionHeader title="Limits" />
-          <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {LIMITS.map(l => <LimitRow key={l.id} item={l} />)}
-          </div>
-
-          {/* Upcoming Bills */}
-          <SectionHeader title="Upcoming bills" />
-          <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {BILLS.map(b => <BillRow key={b.id} item={b} />)}
-          </div>
+          {txGroups.length === 0 ? (
+            <div style={{ padding: '0 16px 24px', textAlign: 'center', color: 'rgba(235,235,245,0.35)', fontSize: 15, letterSpacing: '-0.3px' }}>
+              No transactions yet
+            </div>
+          ) : (
+            <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {txGroups.slice(0, 6).map(g => (
+                <TxGroup key={g.date} group={g} catMap={catMap} accMap={accMap} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Top bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        paddingTop: 'calc(var(--safe-top) + 62px)',
         padding: 'calc(var(--safe-top) + 62px) 16px 10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
-          <span data-line="175" style={{
+          <span style={{
             fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
             fontSize: 48, fontWeight: 700, letterSpacing: '-0.6px', lineHeight: '49px', color: '#fff',
           }}>Home</span>
           <div style={{ flex: 1 }} />
-          {/* Toolbar button group */}
           <div style={{
             display: 'flex', gap: 12, alignItems: 'center',
             padding: '0 4px', height: 44,
@@ -190,8 +211,13 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {/* Action menu overlay */}
-      {showMenu && <ActionMenu onClose={() => setShowMenu(false)} onSelect={t => { setShowMenu(false); setTimeout(() => setAddType(t), 250) }} />}
+      {/* Action menu */}
+      {showMenu && (
+        <ActionMenu
+          onClose={() => setShowMenu(false)}
+          onSelect={t => { setShowMenu(false); setTimeout(() => setAddType(t), 250) }}
+        />
+      )}
 
       {/* Tab bar */}
       <div style={{
@@ -200,7 +226,6 @@ export default function HomeScreen() {
         padding: '16px 25px',
         paddingBottom: 'calc(var(--safe-bottom) + 8px)',
       }}>
-        {/* Tabs pill */}
         <div style={{
           display: 'flex', flex: 1,
           background: 'rgba(28,28,30,0.85)', borderRadius: 999,
@@ -213,8 +238,6 @@ export default function HomeScreen() {
             }} />
           ))}
         </div>
-
-        {/* FAB */}
         <button
           onClick={() => setShowMenu(true)}
           style={{
@@ -231,14 +254,78 @@ export default function HomeScreen() {
   )
 }
 
-// ── Category icon — exact Figma structure ─────────────────────────────────────
-function CategoryIcon({ cat, color }) {
-  const def = CAT[cat]
-  if (!def) return <div style={{ width: 40, height: 40, borderRadius: 12, background: color, flexShrink: 0 }} />
-  return <img src={def.url} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
+// ── Rolling digit animation ───────────────────────────────────────────────────
+function RollingNumber({ value, size, weight, lineH, color, spacing }) {
+  const currRef = useRef(value)
+  const [prev, setPrev] = useState(value)
+  const [curr, setCurr] = useState(value)
+  const [tick, setTick] = useState(0)
+
+  useEffect(() => {
+    if (value === currRef.current) return
+    setPrev(currRef.current)
+    setCurr(value)
+    currRef.current = value
+    setTick(t => t + 1)
+  }, [value])
+
+  const direction = curr >= prev ? 'up' : 'down'
+  const cs = fmtAmt(curr)
+  const ps = fmtAmt(prev)
+  const maxLen = Math.max(cs.length, ps.length)
+  const cPad = cs.padStart(maxLen, '\u200b')
+  const pPad = ps.padStart(maxLen, '\u200b')
+
+  const base = {
+    fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
+    fontSize: size, fontWeight: weight, color, letterSpacing: spacing,
+  }
+
+  let ci = 0
+  const chars = Array.from({ length: maxLen }, (_, i) => {
+    const c = cPad[i], p = pPad[i]
+    const changed = c !== p && /\d/.test(c)
+    return { c, p, changed, stagger: changed ? ci++ : 0 }
+  })
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'flex-end' }}>
+      {chars.map((ch, i) => {
+        if (ch.c === '\u200b') return null
+
+        if (!ch.changed) {
+          return (
+            <span key={i} style={{ ...base, display: 'inline-block', lineHeight: `${lineH}px` }}>
+              {ch.c}
+            </span>
+          )
+        }
+
+        const anim = direction === 'up' ? 'dRollUp' : 'dRollDown'
+        const delay = ch.stagger * 28
+
+        return (
+          <span key={`${tick}-${i}`} style={{ display: 'inline-block', height: lineH, overflow: 'hidden', verticalAlign: 'top' }}>
+            <span style={{ display: 'block', animation: `${anim} 420ms cubic-bezier(0.22,1,0.36,1) ${delay}ms both` }}>
+              <span style={{ ...base, display: 'block', lineHeight: `${lineH}px` }}>
+                {direction === 'up' ? ch.p : ch.c}
+              </span>
+              <span style={{ ...base, display: 'block', lineHeight: `${lineH}px` }}>
+                {direction === 'up' ? ch.c : ch.p}
+              </span>
+            </span>
+          </span>
+        )
+      })}
+    </span>
+  )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+function CategoryIcon({ catKey }) {
+  return <img src={CAT_ICONS[catKey] ?? IC_CAT_OTHER} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
+}
+
 function CTAButton({ title, blue, onClick }) {
   const [p, setP] = useState(false)
   return (
@@ -250,37 +337,9 @@ function CTAButton({ title, blue, onClick }) {
         color: blue ? 'rgba(0,136,255,0.96)' : '#fff',
         fontFamily: "'SF Pro', -apple-system, sans-serif",
         fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
-        opacity: p ? 0.8 : 1, transition: 'opacity 0.12s',
-        cursor: 'pointer',
+        opacity: p ? 0.8 : 1, transition: 'opacity 0.12s', cursor: 'pointer',
       }}
     >{title}</button>
-  )
-}
-
-function SuggestionCard({ card }) {
-  return (
-    <div style={{
-      minWidth: 310, borderRadius: 24,
-      background: 'rgba(0,136,255,0.12)',
-      scrollSnapAlign: 'start', flexShrink: 0,
-      display: 'flex', alignItems: 'center', padding: 16, gap: 16,
-    }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: 'rgba(0,136,255,0.96)', marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {card.title}
-        </div>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: 'rgba(0,136,255,0.64)', lineHeight: '18px',
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {card.desc}
-        </div>
-      </div>
-      <button style={{
-        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-        background: 'rgba(0,136,255,0.16)', border: 'none',
-        color: 'rgba(0,136,255,0.96)', fontSize: 14, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>✕</button>
-    </div>
   )
 }
 
@@ -296,60 +355,43 @@ function SectionHeader({ title }) {
   )
 }
 
-function TxGroup({ group }) {
+function TxGroup({ group, catMap, accMap }) {
+  const total = group.items.reduce((sum, tx) => {
+    return tx.type === 'expense' ? sum - Number(tx.amount) : sum + Number(tx.amount)
+  }, 0)
+  const totalStr = (total < 0 ? `-${fmtAmt(-total)}` : `+${fmtAmt(total)}`) + ' sums'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: 'rgba(235,235,245,0.6)' }}>
-        <span>{group.date}</span><span>{group.total}</span>
+        <span>{fmtDateLabel(group.date)}</span>
+        <span>{totalStr}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {group.items.map(tx => <TxRow key={tx.id} tx={tx} />)}
+        {group.items.map(tx => {
+          const cat = catMap[tx.category_id]
+          const acc = accMap[tx.account_id]
+          return <TxRow key={tx.id} tx={tx} catKey={cat?.key} accName={acc?.name ?? ''} />
+        })}
       </div>
     </div>
   )
 }
 
-function TxRow({ tx }) {
+function TxRow({ tx, catKey, accName }) {
+  const label = tx.note || (catKey ? catKey.charAt(0).toUpperCase() + catKey.slice(1) : 'Transaction')
+  const prefix = tx.type === 'expense' ? '- ' : '+ '
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 10px', height: 60, background: '#1C1C1E', borderRadius: 20 }}>
-      <CategoryIcon cat={tx.cat} color={tx.color} />
-      <span style={{ flex: 1, fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{tx.title}</span>
+      <CategoryIcon catKey={catKey ?? 'other'} />
+      <span style={{ flex: 1, fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+        {label}
+      </span>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 15, fontWeight: 510, letterSpacing: '-0.75px', color: '#fff' }}>
-          {tx.amount} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
+          {prefix}{fmtAmt(tx.amount)} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
         </div>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{tx.sub}</div>
-      </div>
-    </div>
-  )
-}
-
-function LimitRow({ item }) {
-  const grad = `linear-gradient(90deg, #16E18C 0%, #F3E100 40%, #FF8000 70%, #FF3300 100%)`
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, background: '#1C1C1E', borderRadius: 20 }}>
-      <CategoryIcon cat={item.cat} color={item.color} />
-      <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', marginBottom: 2 }}>{item.title}</div>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)', marginBottom: 8 }}>{item.detail}</div>
-        <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.10)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${item.progress * 100}%`, borderRadius: 3, background: grad }} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function BillRow({ item }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 10px', height: 60, background: '#1C1C1E', borderRadius: 20 }}>
-      <CategoryIcon cat={item.cat} color={item.color} />
-      <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff' }}>{item.title}</div>
-        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{item.sub}</div>
-      </div>
-      <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 15, fontWeight: 510, letterSpacing: '-0.75px', color: '#fff', flexShrink: 0 }}>
-        {item.amount} <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(235,235,245,0.6)' }}>sums</span>
+        <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, color: 'rgba(235,235,245,0.6)' }}>{accName}</div>
       </div>
     </div>
   )
@@ -364,7 +406,6 @@ function TabBtn({ tab, active, onClick }) {
         gap: 1, padding: '6px 8px 7px', border: 'none', cursor: 'pointer',
         background: active ? 'rgba(20,20,20,0.8)' : 'transparent',
         borderRadius: 100,
-        position: 'relative',
       }}
     >
       <div style={{ width: 28, height: 28, flexShrink: 0, overflow: 'hidden' }}>

@@ -1,14 +1,27 @@
-import React, { useState } from 'react'
-import IC_CAT_OTHER    from '../assets/icons/categories/other.svg'
-import IC_CAT_GROCERY  from '../assets/icons/categories/grocery.svg'
-import IC_CAT_TRANSPORT from '../assets/icons/categories/transport.svg'
-import IC_CAT_CLOTHING  from '../assets/icons/categories/clothing.svg'
-import IC_CAT_MEAL      from '../assets/icons/categories/meal.svg'
-import IC_CAT_WEB       from '../assets/icons/categories/web.svg'
-import IC_CAT_HOUSE     from '../assets/icons/categories/house.svg'
-import IC_CAT_GAMING    from '../assets/icons/categories/gaming.svg'
+import { useState, useEffect, useMemo } from 'react'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
+import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.svg'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
+import IC_CAT_MEAL          from '../assets/icons/categories/meal.svg'
+import IC_CAT_WEB           from '../assets/icons/categories/web.svg'
+import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
+import IC_CAT_GAMING        from '../assets/icons/categories/gaming.svg'
 
-// ── Local assets ─────────────────────────────────────────────────────────────
+const CAT_ICON_MAP = {
+  food:          IC_CAT_MEAL,
+  grocery:       IC_CAT_GROCERY,
+  transport:     IC_CAT_TRANSPORT,
+  clothing:      IC_CAT_CLOTHING,
+  home:          IC_CAT_HOUSE,
+  entertainment: IC_CAT_GAMING,
+  shopping:      IC_CAT_WEB,
+  utilities:     IC_CAT_OTHER,
+  health:        IC_CAT_OTHER,
+  education:     IC_CAT_OTHER,
+  other:         IC_CAT_OTHER,
+}
+
 import IC_TYPE_ADD from '../assets/icons/ui/type-add.svg'
 import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.svg'
 import IC_TYPE_INC from '../assets/icons/ui/type-income.svg'
@@ -19,7 +32,20 @@ import IC_CHEVRON  from '../assets/icons/ui/chevron.svg'
 import IC_DELETE   from '../assets/icons/ui/delete.svg'
 import IC_BACK     from '../assets/icons/ui/back.svg'
 
-// ── Data ────────────────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+
+// fallback categories shown before DB loads
+const FALLBACK_CATEGORIES = [
+  { key: 'other',         label: 'Other',         icon: IC_CAT_OTHER    },
+  { key: 'grocery',       label: 'Grocery',        icon: IC_CAT_GROCERY  },
+  { key: 'transport',     label: 'Transport',      icon: IC_CAT_TRANSPORT},
+  { key: 'clothing',      label: 'Clothing',       icon: IC_CAT_CLOTHING },
+  { key: 'food',          label: 'Meal',           icon: IC_CAT_MEAL     },
+  { key: 'shopping',      label: 'Shopping',       icon: IC_CAT_WEB      },
+  { key: 'home',          label: 'Home',           icon: IC_CAT_HOUSE    },
+  { key: 'entertainment', label: 'Entertainment',  icon: IC_CAT_GAMING   },
+]
+
 const NAV_TYPES = [
   { key: 'Expense',  icon: IC_TYPE_ADD },
   { key: 'Transfer', icon: IC_TYPE_TRN },
@@ -27,18 +53,6 @@ const NAV_TYPES = [
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
 
-const CATEGORIES = [
-  { key: 'other',    label: 'Other',     icon: IC_CAT_OTHER    },
-  { key: 'grocery',  label: 'Grocery',   icon: IC_CAT_GROCERY  },
-  { key: 'transport',label: 'Transport', icon: IC_CAT_TRANSPORT},
-  { key: 'clothing', label: 'Clothing',  icon: IC_CAT_CLOTHING },
-  { key: 'meal',     label: 'Meal',      icon: IC_CAT_MEAL     },
-  { key: 'web',      label: 'Web',       icon: IC_CAT_WEB      },
-  { key: 'home',     label: 'Home',      icon: IC_CAT_HOUSE    },
-  { key: 'gaming',   label: 'Gaming',    icon: IC_CAT_GAMING   },
-]
-
-// [label, isPill]
 const ROWS = [
   [['1',false],['2',false],['3',false],['+',true ]],
   [['4',false],['5',false],['6',false],['−',true ]],
@@ -47,20 +61,41 @@ const ROWS = [
 ]
 
 function formatAmount(digits) {
-  const raw = digits.replace(/,/g, '').replace(/\s/g, '')
+  const raw = digits.replace(/[^\d]/g, '')
   if (!raw) return '0'
-  return parseInt(raw, 10).toLocaleString('en').replace(/,/g, ' ')
+  return parseInt(raw, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function AddExpenseScreen({ type: initType, onClose }) {
-  const [type,        setType]        = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
-  const [digits,      setDigits]      = useState('')
-  const [note,        setNote]        = useState('')
-  const [category,    setCategory]    = useState(CATEGORIES[0])
-  const [showPicker,  setShowPicker]  = useState(false)
+export default function AddExpenseScreen({ type: initType, onClose, onAdd, userId, accounts = [], categories: dbCats = [] }) {
+  // Map DB categories to local icons
+  const CATEGORIES = useMemo(() =>
+    (dbCats.length > 0 ? dbCats : FALLBACK_CATEGORIES).map(c => ({
+      key:   c.key,
+      label: c.label,
+      icon:  CAT_ICON_MAP[c.key] ?? IC_CAT_OTHER,
+    })),
+  [dbCats])
 
-  const displayAmt = formatAmount(digits)
+  const [type,       setType]       = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
+  const [digits,     setDigits]     = useState('')
+  const [note,       setNote]       = useState('')
+  const [category,   setCategory]   = useState(null)
+  const [accIdx,     setAccIdx]     = useState(0)
+  const [showPicker, setShowPicker] = useState(false)
+  const [saving,     setSaving]     = useState(false)
+
+  // Default to "other" category when DB data arrives
+  useEffect(() => {
+    if (CATEGORIES.length > 0) {
+      setCategory(CATEGORIES.find(c => c.key === 'other') ?? CATEGORIES[0])
+    }
+  }, [CATEGORIES])
+
+  const selectedCategory = category ?? CATEGORIES[0]
+
+  const selectedAcc = accounts[accIdx] ?? null
+  const displayAmt  = formatAmount(digits)
 
   function tap(label) {
     if (label === '⌫') {
@@ -74,10 +109,35 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
     }
   }
 
+  async function handleAdd() {
+    const amount = parseInt(digits.replace(/\s/g, '').replace(/,/g, ''), 10)
+    if (!amount || amount <= 0) { onClose(); return }
+    setSaving(true)
+    try {
+      await fetch(`${API_BASE}/users/${userId}/transactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: type.toLowerCase(),
+          amount,
+          note: note || null,
+          category_key: selectedCategory.key !== 'other' ? selectedCategory.key : null,
+          account_id: selectedAcc?.id ?? null,
+          source: 'manual',
+        }),
+      })
+      onAdd?.()
+    } catch (e) {
+      console.error('[AddExpense] save error:', e)
+    }
+    setSaving(false)
+    onClose()
+  }
+
   return (
     <div data-file="src/screens/AddExpenseScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Top progressive blur ── */}
+      {/* Top progressive blur */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 120,
         zIndex: 5, pointerEvents: 'none',
@@ -88,10 +148,9 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
         WebkitBackdropFilter: 'blur(20px)',
       }} />
 
-      {/* ── Toolbar ── */}
+      {/* Toolbar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        paddingTop: 'calc(var(--safe-top) + 10px)',
         padding: 'calc(var(--safe-top) + 10px) 16px 0',
         height: 'calc(var(--safe-top) + 62px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -101,8 +160,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           style={{
             width: 60, height: 45, borderRadius: 999,
             background: '#1C1C1E', border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
           <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
@@ -110,10 +168,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           </div>
         </button>
 
-        <div style={{
-          background: '#1C1C1E', borderRadius: 999,
-          padding: 4, display: 'flex', gap: 0, flexShrink: 0,
-        }}>
+        <div style={{ background: '#1C1C1E', borderRadius: 999, padding: 4, display: 'flex', gap: 0, flexShrink: 0 }}>
           {NAV_TYPES.map(({ key, icon }) => (
             <button
               key={key}
@@ -132,24 +187,20 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           ))}
         </div>
 
-        <div style={{
-          width: 60, height: 45, borderRadius: 999, overflow: 'hidden',
-          flexShrink: 0, position: 'relative',
-        }}>
+        <div style={{ width: 60, height: 45, borderRadius: 999, overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
           <img src={IC_MORE} alt="more" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       </div>
 
-      {/* ── Amount display ── */}
+      {/* Amount display */}
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        paddingTop: 120, padding: '120px 16px 0',
+        padding: '120px 16px 0',
       }}>
         <div style={{
           fontFamily: "'SF Pro', -apple-system, sans-serif",
-          fontWeight: 400,
-          fontSize: 16, color: 'rgba(235,235,245,0.6)',
+          fontWeight: 400, fontSize: 16, color: 'rgba(235,235,245,0.6)',
           marginBottom: 12, letterSpacing: '-0.31px',
         }}>
           New {type.toLowerCase()}
@@ -166,15 +217,14 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           </span>
           <span style={{
             fontFamily: "'SF Pro', -apple-system, sans-serif",
-            fontWeight: 400,
-            fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px',
+            fontWeight: 400, fontSize: 20, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.45px',
           }}>
             sums
           </span>
         </div>
       </div>
 
-      {/* ── Bottom section ── */}
+      {/* Bottom section */}
       <div style={{
         padding: '0 16px',
         paddingBottom: 'calc(32px + var(--safe-bottom))',
@@ -190,17 +240,20 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
 
-          {/* Category chip — dynamic */}
+          {/* Category chip */}
           <button onClick={() => setShowPicker(true)} style={chipStyle}>
-            <CategoryIconMini icon={category.icon} />
-            {category.label}
+            <img src={selectedCategory.icon} alt="" style={{ width: 28, height: 28, display: 'block', flexShrink: 0 }} />
+            {selectedCategory.label}
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
 
-          {/* Account chip */}
-          <button style={chipStyle}>
+          {/* Account chip — tap to cycle through accounts */}
+          <button
+            onClick={() => accounts.length > 1 && setAccIdx(i => (i + 1) % accounts.length)}
+            style={chipStyle}
+          >
             <img src={IC_CARD} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-            Visa
+            {selectedAcc?.name ?? 'Account'}
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
         </div>
@@ -236,22 +289,25 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
         {/* Add button */}
         <button
-          onClick={onClose}
+          onClick={handleAdd}
+          disabled={saving}
           style={{
             height: 60, borderRadius: 999, border: 'none',
-            background: '#fff', color: '#1A1B1B',
+            background: saving ? 'rgba(255,255,255,0.5)' : '#fff',
+            color: '#1A1B1B',
             fontFamily: "'SF Pro', -apple-system, sans-serif",
             fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
           }}
         >
-          Add {type.toLowerCase()}
+          {saving ? 'Saving...' : `Add ${type.toLowerCase()}`}
         </button>
       </div>
 
-      {/* ── Category Picker overlay ── */}
+      {/* Category Picker overlay */}
       {showPicker && (
         <CategoryPicker
-          selected={category}
+          categories={CATEGORIES}
+          selected={selectedCategory}
           onSelect={cat => { setCategory(cat); setShowPicker(false) }}
           onClose={() => setShowPicker(false)}
         />
@@ -269,17 +325,8 @@ const chipStyle = {
   color: '#fff', fontSize: 17, fontWeight: 510,
 }
 
-// ── Category icons — SVGs are self-contained (bg + gradient + icon inside) ────
-function CategoryIconMini({ icon }) {
-  return <img src={icon} alt="" style={{ width: 28, height: 28, display: 'block', flexShrink: 0 }} />
-}
-
-function CategoryIconFull({ icon }) {
-  return <img src={icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
-}
-
 // ── Category Picker ───────────────────────────────────────────────────────────
-function CategoryPicker({ selected, onSelect, onClose }) {
+function CategoryPicker({ categories, selected, onSelect, onClose }) {
   const [pending, setPending] = useState(selected)
 
   return (
@@ -287,7 +334,6 @@ function CategoryPicker({ selected, onSelect, onClose }) {
       position: 'absolute', inset: 0, background: '#000',
       display: 'flex', flexDirection: 'column', zIndex: 20,
     }}>
-      {/* Toolbar */}
       <div style={{
         padding: 'calc(var(--safe-top) + 10px) 16px 0',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -305,22 +351,15 @@ function CategoryPicker({ selected, onSelect, onClose }) {
             <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>
-        <span style={{
-          fontFamily: "'SF Pro', -apple-system, sans-serif",
-          fontSize: 17, fontWeight: 590, color: '#fff', letterSpacing: '-0.43px',
-        }}>
+        <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 17, fontWeight: 590, color: '#fff', letterSpacing: '-0.43px' }}>
           Kategoriya
         </span>
         <div style={{ width: 60 }} />
       </div>
 
-      {/* Category list card */}
-      <div style={{
-        flex: 1, overflowY: 'auto', padding: '16px 16px 0',
-        scrollbarWidth: 'none',
-      }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 0', scrollbarWidth: 'none' }}>
         <div style={{ borderRadius: 20, overflow: 'hidden', background: '#1C1C1E' }}>
-          {CATEGORIES.map((cat, i) => (
+          {categories.map((cat, i) => (
             <button
               key={cat.key}
               onClick={() => setPending(cat)}
@@ -331,7 +370,7 @@ function CategoryPicker({ selected, onSelect, onClose }) {
                 borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <CategoryIconFull icon={cat.icon} />
+              <img src={cat.icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
               <span style={{
                 flex: 1, textAlign: 'left',
                 fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -352,37 +391,10 @@ function CategoryPicker({ selected, onSelect, onClose }) {
               )}
             </button>
           ))}
-
-          {/* Add category row */}
-          <button style={{
-            width: '100%', display: 'flex', alignItems: 'center',
-            gap: 12, padding: '12px 16px',
-            background: 'none', border: 'none', cursor: 'pointer',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-          }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-              background: 'rgba(0,136,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 24, color: '#0088FF', lineHeight: 1 }}>+</span>
-            </div>
-            <span style={{
-              fontFamily: "'SF Pro', -apple-system, sans-serif",
-              fontSize: 17, fontWeight: 510, color: '#0088FF', letterSpacing: '-0.43px',
-            }}>
-              Add category
-            </span>
-          </button>
         </div>
       </div>
 
-      {/* Continue button */}
-      <div style={{
-        padding: '14px 16px',
-        paddingBottom: 'calc(14px + var(--safe-bottom))',
-        flexShrink: 0,
-      }}>
+      <div style={{ padding: '14px 16px', paddingBottom: 'calc(14px + var(--safe-bottom))', flexShrink: 0 }}>
         <button
           onClick={() => onSelect(pending)}
           style={{
@@ -415,8 +427,7 @@ function NumKey({ label, pill, onTap }) {
         color: '#fff', fontSize: 17, fontWeight: 510,
         letterSpacing: '-0.43px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        opacity: pressed ? 0.55 : 1,
-        transition: 'opacity 0.1s',
+        opacity: pressed ? 0.55 : 1, transition: 'opacity 0.1s',
       }}
     >
       {label === '⌫'
