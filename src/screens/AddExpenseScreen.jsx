@@ -11,16 +11,16 @@ const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c
 const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
 const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
 
-// ── Category icon assets (Figma node 8141:25585, refreshed) ──────────────────
-const IC_CAT_HOUSE         = 'https://www.figma.com/api/mcp/asset/48fad630-71f4-4e73-82f5-3c1e7dc38e83'
-const IC_CAT_MEAL          = 'https://www.figma.com/api/mcp/asset/db46d06c-7272-4041-b50d-804d61393dc9'
-const IC_CAT_GLOBE         = 'https://www.figma.com/api/mcp/asset/ad164a0b-0034-4147-8c7d-5c50510ff9cb'
-const IC_CAT_CLOTHING      = 'https://www.figma.com/api/mcp/asset/9b866578-f9c6-4b5f-8ad3-e4a64d925389'
-const IC_CAT_TRANSPORT     = 'https://www.figma.com/api/mcp/asset/55b0b36b-0eeb-4a2c-9fd6-4798a82899ae'
-const IC_CAT_ENTERTAINMENT = 'https://www.figma.com/api/mcp/asset/04b94254-3020-4dc0-a350-5cfc8c32e653'
-const IC_CAT_GROCERY       = 'https://www.figma.com/api/mcp/asset/948e02da-4677-40c5-b0c6-806e41a40329'
-const IC_CAT_OTHER         = 'https://www.figma.com/api/mcp/asset/76ddcc04-fb71-474d-980b-b6068fdabfaa'
-const IC_CAT_PLUS          = 'https://www.figma.com/api/mcp/asset/22af1966-0aa2-4887-905b-ea99677865a7'
+// ── Category icon assets (local) ─────────────────────────────────────────────
+import IC_CAT_HOUSE         from '../assets/icons/categories/house.png'
+import IC_CAT_MEAL          from '../assets/icons/categories/meal.png'
+import IC_CAT_GLOBE         from '../assets/icons/categories/web.png'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.png'
+import IC_CAT_TRANSPORT     from '../assets/icons/categories/transport.png'
+import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.png'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.png'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.png'
+import IC_CAT_PLUS          from '../assets/icons/categories/plus.png'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
