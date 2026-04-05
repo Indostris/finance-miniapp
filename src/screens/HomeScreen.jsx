@@ -84,7 +84,7 @@ export default function HomeScreen({ userId }) {
   const [transactions, setTransactions] = useState([])
   const [accounts,     setAccounts]     = useState([])
   const [categories,   setCategories]   = useState([])
-  const [selectedAccount, setSelectedAccount] = useState('all')
+  const [selectedAccount, setSelectedAccount] = useState(null)
 
   function fetchData() {
     Promise.all([
@@ -93,8 +93,15 @@ export default function HomeScreen({ userId }) {
       fetch(`${API_BASE}/categories`).then(r => r.json()),
     ]).then(([txs, accs, cats]) => {
       setTransactions(Array.isArray(txs) ? txs : [])
-      setAccounts(Array.isArray(accs) ? accs : [])
+      const accsArr = Array.isArray(accs) ? accs : []
+      setAccounts(accsArr)
       setCategories(Array.isArray(cats) ? cats : [])
+      // Default to Cash account on first load
+      setSelectedAccount(prev => {
+        if (prev !== null) return prev
+        const cash = accsArr.find(a => a.name === 'Cash')
+        return cash ? cash.id : 'all'
+      })
     }).catch(console.error)
   }
 

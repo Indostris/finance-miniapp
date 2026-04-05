@@ -155,6 +155,9 @@ async def upsert_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
     if not user:
         user = User(id=data.id, username=data.username)
         db.add(user)
+        await db.flush()
+        # Seed default Cash account for every new user
+        db.add(Account(user_id=user.id, name="Cash", currency="UZS", balance=0))
         await db.commit()
         await db.refresh(user)
     return user
@@ -171,7 +174,9 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
 # ── Accounts ───────────────────────────────────────────────────────────────────
 @app.get("/users/{user_id}/accounts", response_model=List[AccountOut])
 async def list_accounts(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Account).where(Account.user_id == user_id))
+    result = await db.execute(
+        select(Account).where(Account.user_id == user_id).order_by(Account.created_at.asc())
+    )
     return result.scalars().all()
 
 
@@ -189,6 +194,8 @@ async def delete_account(account_id: int, db: AsyncSession = Depends(get_db)):
     account = await db.get(Account, account_id)
     if not account:
         raise HTTPException(404, "Account not found")
+    if account.name == "Cash":
+        raise HTTPException(400, "Default Cash account cannot be deleted")
     await db.delete(account)
     await db.commit()
     return {"ok": True}
