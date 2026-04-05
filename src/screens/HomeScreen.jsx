@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
 import AssistantScreen  from './AssistantScreen'
+import AddWalletScreen  from './AddWalletScreen'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
@@ -85,6 +86,7 @@ export default function HomeScreen({ userId }) {
   const [accounts,     setAccounts]     = useState([])
   const [categories,   setCategories]   = useState([])
   const [selectedAccount, setSelectedAccount] = useState(null)
+  const [showAddWallet,   setShowAddWallet]   = useState(false)
 
   function fetchData() {
     Promise.all([
@@ -125,6 +127,13 @@ export default function HomeScreen({ userId }) {
 
   const txGroups = groupByDate(transactions.slice(0, 4))
 
+  if (showAddWallet) return (
+    <AddWalletScreen
+      userId={userId}
+      onClose={() => setShowAddWallet(false)}
+      onCreated={() => { fetchData() }}
+    />
+  )
   if (addType) return (
     <AddExpenseScreen
       type={addType}
@@ -213,15 +222,18 @@ export default function HomeScreen({ userId }) {
             ))}
 
             {/* Add card */}
-            <button style={{
-              flexShrink: 0, padding: '13px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: 'rgba(118,118,128,0.12)',
-              color: 'rgba(235,235,245,0.6)',
-              fontSize: 15, fontWeight: 400, letterSpacing: '-0.23px', lineHeight: '20px',
-              fontFamily: "'SF Pro', -apple-system, sans-serif",
-              display: 'flex', alignItems: 'center', gap: 4,
-            }}>
-              <span>+</span><span>Add card</span>
+            <button
+              onClick={() => setShowAddWallet(true)}
+              style={{
+                flexShrink: 0, padding: '13px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: 'rgba(118,118,128,0.12)',
+                color: 'rgba(235,235,245,0.6)',
+                fontSize: 15, fontWeight: 400, letterSpacing: '-0.23px', lineHeight: '20px',
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              <span>+</span><span>Add wallet</span>
             </button>
           </div>
 
