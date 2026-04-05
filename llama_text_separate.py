@@ -84,14 +84,14 @@ ANTI-MANIPULATION Rules:
 - If the text contains no numbers, return: []
 
 Category mappings:
-- sigaret, cigarette, zvachka, kiyim, magazin → shopping
-- taksi, taxi, uber, avtobus, metro → transport
-- osh, non, ovqat, burger, cafe, restaurant, kafe → food
-- bozor, supermarket, oziq-ovqat → grocery
-- uy, kvartira, kommunal → home
-- dori, dorixona, shifoxona → health
-- maktab, kurs, kitob → education
-- internet, gaz, suv, elektr → utilities
+- sigaret, cigarette, zvachka, kiyim, magazin, tutun → shopping
+- taksi, taxi, uber, avtobus, metro, marshrutka, yo'l → transport
+- osh, non, ovqat, burger, cafe, restaurant, kafe, somsa, lagman, shashlik, plov, manti, chuchvara, limonod, choy, qahva, donut, pizza, sushi, obed, tushlik, kechki ovqat → food
+- bozor, supermarket, oziq-ovqat, do'kon,market → grocery
+- uy, kvartira, kommunal, ijara → home
+- dori, dorixona, shifoxona, klinika → health
+- maktab, kurs, kitob, universitet, talim → education
+- internet, gaz, suv, elektr, telefon → utilities
 
 Return ONLY this format: [{{"category": "food", "amount": 150000, "currency": "UZS"}}]
 
@@ -102,46 +102,54 @@ def extract_finance_data(text: str) -> list:
     converted_text = convert_uzbek_numbers(text)
     print(f"Converted: {converted_text}")
 
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llama3.2",
-                "prompt": build_prompt(converted_text),
-                "stream": False
-            },
-            timeout=120
-        )
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Request failed: {e}")
-        return []
+    for attempt in range(3):
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "llama3.2",
+                    "prompt": build_prompt(converted_text),
+                    "stream": False,
+                    "options": {"temperature": 0},
+                },
+                timeout=120
+            )
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Request failed (attempt {attempt+1}): {e}")
+            continue
 
-    raw = response.json().get("response", "").strip()
-    raw = raw.strip('"')
-    raw = raw.replace('["{"', '[{"').replace('"}"]', '"}]')
-    print(f"Raw: {raw}")
+        raw = response.json().get("response", "").strip()
+        raw = raw.strip('"')
+        raw = raw.replace('["{"', '[{"').replace('"}"]', '"}]')
+        print(f"Raw (attempt {attempt+1}): {raw}")
 
-    start = raw.find("[")
-    end = raw.rfind("]") + 1
+        start = raw.find("[")
+        end   = raw.rfind("]") + 1
+        if start == -1 or end == 0:
+            print("No JSON array found, retrying...")
+            continue
 
-    if start == -1 or end == 0:
-        return []
+        try:
+            result = json.loads(raw[start:end])
+            if isinstance(result, list) and len(result) == 1 and isinstance(result[0], list):
+                result = result[0]
+            if isinstance(result, list) and len(result) > 0 and isinstance(result[0], str):
+                result = [json.loads(item) for item in result]
+        except json.JSONDecodeError:
+            print("JSON parse error, retrying...")
+            continue
 
-    try:
-        result = json.loads(raw[start:end])
-        if isinstance(result, list) and len(result) == 1 and isinstance(result[0], list):
-            result = result[0]
-        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], str):
-            result = [json.loads(item) for item in result]
-    except json.JSONDecodeError:
-        return []
+        if not isinstance(result, list):
+            continue
 
-    if not isinstance(result, list):
-        return []
+        parsed = [
+            {**t, "amount": int(t.get("amount", 0))}
+            for t in result
+            if isinstance(t, dict) and int(t.get("amount", 0)) > 0
+        ]
+        if parsed:
+            return parsed
+        print("Empty result, retrying...")
 
-    return [
-        {**t, "amount": int(t.get("amount", 0))}
-        for t in result
-        if isinstance(t, dict) and int(t.get("amount", 0)) > 0
-    ]
+    return []

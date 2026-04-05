@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
 
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+
 // ── Figma SVG assets ─────────────────────────────────────────────────────────
-const IC_TYPE_ADD = 'https://www.figma.com/api/mcp/asset/0bbb37ae-99ec-4eef-a610-3182faf1e6cb'
-const IC_TYPE_TRN = 'https://www.figma.com/api/mcp/asset/9b554be5-c241-4d12-9ac4-2fc694cb4dbe'
-const IC_TYPE_INC = 'https://www.figma.com/api/mcp/asset/f2d452bf-97f0-4f68-a67c-410b55c5c69d'
-const IC_MORE     = 'https://www.figma.com/api/mcp/asset/1ea56f75-fcaa-45a0-b53f-b3326d64c1d3'
-const IC_CALENDAR = 'https://www.figma.com/api/mcp/asset/a6a66353-2303-4dd5-855b-dd6b8974e7a2'
-const IC_DOTS     = 'https://www.figma.com/api/mcp/asset/ab795252-63ed-4aa0-be4a-5574ab2cf282'
-const IC_CARD     = 'https://www.figma.com/api/mcp/asset/b12e6732-587a-4438-8cc3-0a201d6ee9f5'
-const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c-c09447c3d6cd'
-const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
+import {
+  IC_TYPE_ADD, IC_TYPE_TRN, IC_TYPE_INC, IC_MORE,
+  IC_CALENDAR, IC_DOTS, IC_CARD, IC_CHEVRON, IC_DELETE,
+} from '../icons'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [
@@ -18,12 +15,6 @@ const NAV_TYPES = [
   { key: 'Income',   icon: IC_TYPE_INC },
 ]
 const VALID_TYPES = new Set(NAV_TYPES.map(t => t.key))
-
-const CHIPS = [
-  { label: 'Today', icon: IC_CALENDAR },
-  { label: 'Other', icon: IC_DOTS     },
-  { label: 'Visa',  icon: IC_CARD     },
-]
 
 // [label, isPill]
 const ROWS = [
@@ -40,12 +31,15 @@ function formatAmount(digits) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function AddExpenseScreen({ type: initType, onClose }) {
-  const [type,   setType]   = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
-  const [digits, setDigits] = useState('')
-  const [note,   setNote]   = useState('')
+export default function AddExpenseScreen({ type: initType, userId, accounts = [], onClose }) {
+  const [type,      setType]      = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
+  const [digits,    setDigits]    = useState('')
+  const [note,      setNote]      = useState('')
+  const [accountIdx, setAccountIdx] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
 
-  const displayAmt = formatAmount(digits)
+  const displayAmt   = formatAmount(digits)
+  const selectedAcc  = accounts[accountIdx] ?? null
 
   function tap(label) {
     if (label === '⌫') {
@@ -58,6 +52,38 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
       setDigits(d => d === '0' ? label : d + label)
     }
   }
+
+  function cycleAccount() {
+    if (accounts.length > 1) setAccountIdx(i => (i + 1) % accounts.length)
+  }
+
+  async function handleAdd() {
+    const amount = parseInt(digits.replace(/,/g, '').replace(/\s/g, '') || '0', 10)
+    if (!amount) return
+
+    const body  = {
+      type:       type.toLowerCase(),
+      amount,
+      note:       note || null,
+      account_id: selectedAcc?.id ?? null,
+      source:     'manual',
+    }
+
+    setSubmitting(true)
+    try {
+      await fetch(`${API_BASE}/users/${userId}/transactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      onClose()
+    } catch (err) {
+      console.error(err)
+      setSubmitting(false)
+    }
+  }
+
+  const accountLabel = selectedAcc ? selectedAcc.name : 'No account'
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
@@ -81,7 +107,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
         height: 'calc(var(--safe-top) + 62px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Back — wide pill */}
+        {/* Back */}
         <button
           onClick={onClose}
           style={{
@@ -102,7 +128,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           }}>{'\u{100188}'}</span>
         </button>
 
-        {/* Type switcher — 3 icons in pill */}
+        {/* Type switcher */}
         <div style={{
           background: '#1C1C1E', borderRadius: 999,
           padding: 4, display: 'flex', gap: 0, flexShrink: 0,
@@ -125,7 +151,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
           ))}
         </div>
 
-        {/* More — wide pill (full SVG image) */}
+        {/* More */}
         <div style={{
           width: 60, height: 45, borderRadius: 999, overflow: 'hidden',
           flexShrink: 0, position: 'relative',
@@ -138,7 +164,7 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        paddingTop: 120, padding: '120px 16px 0',
+        padding: '120px 16px 0',
       }}>
         <div style={{
           fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -177,22 +203,16 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
         {/* Chips */}
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {CHIPS.map(({ label, icon }) => (
-            <button
-              key={label}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                padding: '13px 16px', borderRadius: 999, flexShrink: 0,
-                background: 'rgba(118,118,128,0.24)', border: 'none', cursor: 'pointer',
-                fontFamily: "'SF Pro', -apple-system, sans-serif",
-                color: '#fff', fontSize: 17, fontWeight: 510,
-              }}
-            >
-              <img src={icon} alt={label} style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-              {label}
-              <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
-            </button>
-          ))}
+          {/* Date chip — static */}
+          <ChipButton label="Today" icon={IC_CALENDAR} />
+          {/* Other chip — static */}
+          <ChipButton label="Other" icon={IC_DOTS} />
+          {/* Account chip — dynamic */}
+          <ChipButton
+            label={accountLabel}
+            icon={IC_CARD}
+            onClick={accounts.length > 1 ? cycleAccount : undefined}
+          />
         </div>
 
         {/* Note */}
@@ -226,18 +246,43 @@ export default function AddExpenseScreen({ type: initType, onClose }) {
 
         {/* Add button */}
         <button
-          onClick={onClose}
+          onClick={handleAdd}
+          disabled={submitting || !digits}
           style={{
             height: 60, borderRadius: 999, border: 'none',
-            background: '#fff', color: '#1A1B1B',
+            background: digits ? '#fff' : 'rgba(255,255,255,0.15)',
+            color: digits ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
             fontFamily: "'SF Pro', -apple-system, sans-serif",
-            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
+            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
+            cursor: digits ? 'pointer' : 'default',
+            opacity: submitting ? 0.6 : 1,
+            transition: 'background 0.2s, color 0.2s',
           }}
         >
-          Add {type.toLowerCase()}
+          {submitting ? 'Saving…' : `Add ${type.toLowerCase()}`}
         </button>
       </div>
     </div>
+  )
+}
+
+// ── ChipButton ────────────────────────────────────────────────────────────────
+function ChipButton({ label, icon, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        padding: '13px 16px', borderRadius: 999, flexShrink: 0,
+        background: 'rgba(118,118,128,0.24)', border: 'none', cursor: onClick ? 'pointer' : 'default',
+        fontFamily: "'SF Pro', -apple-system, sans-serif",
+        color: '#fff', fontSize: 17, fontWeight: 510,
+      }}
+    >
+      <img src={icon} alt={label} style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+      {label}
+      <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+    </button>
   )
 }
 

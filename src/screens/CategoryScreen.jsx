@@ -1,55 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import BackButton from '../components/BackButton'
+import { CATEGORY_ICON_MAP } from '../categoryMeta'
 
-// ── Category icons from Figma node 8006:20770 (40×40 base component) ─────────
-// Each icon has exact pixel dimensions for perfect centering, no distortion
-const CATEGORIES = [
-  {
-    id: 0, label: 'Online purchase', color: '#FF2D55',
-    icon: 'https://www.figma.com/api/mcp/asset/ca4e81ad-ed99-4e0d-9368-dee2ab1fd193',
-    iw: 19.883, ih: 19.727,
-  },
-  {
-    id: 1, label: 'Eats', color: '#6155F5',
-    icon: 'https://www.figma.com/api/mcp/asset/c06fb12e-cb79-4505-9dcb-5011169918af',
-    iw: 13.425, ih: 22.646,
-  },
-  {
-    id: 2, label: 'Home', color: '#0088FF',
-    icon: 'https://www.figma.com/api/mcp/asset/6f1af81e-12e3-4870-9240-a19156ba0066',
-    iw: 23.32, ih: 20.537,
-  },
-  {
-    id: 3, label: 'Clothing', color: '#FF8D28',
-    icon: 'https://www.figma.com/api/mcp/asset/eb5a14f5-e8d1-4c7d-bbca-08ccac5c7493',
-    iw: 25.72, ih: 21.27,
-  },
-  {
-    id: 4, label: 'Grocery', color: '#FF383C',
-    icon: 'https://www.figma.com/api/mcp/asset/6741e452-f86a-47fb-a20f-c0630a70f4e1',
-    iw: 22.539, ih: 19.199,
-  },
-  {
-    id: 5, label: 'Transport', color: '#34C759',
-    icon: 'https://www.figma.com/api/mcp/asset/7f3d8250-ffc6-4cb6-bcff-8a576afe5e8f',
-    iw: 27.836, ih: 12.57,
-  },
-  {
-    id: 6, label: 'Entertainment', color: '#FF2D55',
-    icon: 'https://www.figma.com/api/mcp/asset/2a084be1-9c5d-43a8-865d-fe8d33de7455',
-    iw: 28.193, ih: 17.695,
-  },
-  {
-    id: 7, label: 'Custom', color: '#8E8E93',
-    icon: 'https://www.figma.com/api/mcp/asset/0fdba60f-13c6-44cd-8342-f33d0cd17340',
-    iw: 14.578, ih: 2.961,
-  },
-]
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
 const CHECK_CHAR = '\u{100185}'
 
 export default function CategoryScreen({ onBack, onContinue }) {
-  const [selected, setSelected] = useState(new Set())
+  const [categories, setCategories] = useState([])
+  const [selected,   setSelected]   = useState(new Set())
+  const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState(null)
+
+  useEffect(() => {
+    fetch(`${API_BASE}/categories`)
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then(data => setCategories(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   function toggle(id) {
     setSelected(prev => {
@@ -90,16 +59,27 @@ export default function CategoryScreen({ onBack, onContinue }) {
           Mos keladigan barcha variantlarni tanlang — kerakli toifalarni o'zimiz qo'shamiz
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
-          {CATEGORIES.map(cat => (
-            <CategoryChip
-              key={cat.id}
-              cat={cat}
-              selected={selected.has(cat.id)}
-              onToggle={() => toggle(cat.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div style={{ color: 'rgba(235,235,245,0.4)', fontSize: 15, textAlign: 'center', paddingTop: 32 }}>
+            Loading…
+          </div>
+        ) : error ? (
+          <div style={{ color: '#FF453A', fontSize: 14, textAlign: 'center', paddingTop: 32, lineHeight: '20px' }}>
+            Could not load categories.{'\n'}Check that the backend is running and VITE_API_URL is set.{'\n\n'}
+            <span style={{ color: 'rgba(235,235,245,0.4)', fontSize: 12 }}>{API_BASE}</span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
+            {categories.map(cat => (
+              <CategoryChip
+                key={cat.id}
+                cat={cat}
+                selected={selected.has(cat.id)}
+                onToggle={() => toggle(cat.id)}
+              />
+            ))}
+          </div>
+        )}
 
         {selected.size > 0 && (
           <div style={{
@@ -120,28 +100,26 @@ export default function CategoryScreen({ onBack, onContinue }) {
 }
 
 // ── Category icon — exact Figma structure ─────────────────────────────────────
-function CategoryIcon({ color, icon, iw, ih }) {
+function CategoryIcon({ color, catKey }) {
+  const def = CATEGORY_ICON_MAP[catKey]
+  if (!def) {
+    return <div style={{ width: 40, height: 40, borderRadius: 12, background: color, flexShrink: 0 }} />
+  }
   return (
     <div style={{
       width: 40, height: 40, borderRadius: 12,
       background: color,
       position: 'relative', overflow: 'hidden', flexShrink: 0,
     }}>
-      {/* Icon absolutely centered with exact pixel size — mix-blend: plus-lighter */}
       <div style={{
         position: 'absolute',
         left: '50%', top: '50%',
         transform: 'translate(-50%, -50%)',
-        width: iw, height: ih,
+        width: def.iw, height: def.ih,
         mixBlendMode: 'plus-lighter',
       }}>
-        <img
-          src={icon}
-          alt=""
-          style={{ display: 'block', width: '100%', height: '100%' }}
-        />
+        <img src={def.url} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
       </div>
-      {/* Top-shine gradient overlay — mix-blend: screen, sibling of icon */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
@@ -169,7 +147,7 @@ function CategoryChip({ cat, selected, onToggle }) {
         transition: 'opacity 0.12s',
       }}
     >
-      <CategoryIcon color={cat.color} icon={cat.icon} iw={cat.iw} ih={cat.ih} />
+      <CategoryIcon color={cat.color ?? '#8E8E93'} catKey={cat.key} />
 
       <span style={{
         fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -178,7 +156,7 @@ function CategoryChip({ cat, selected, onToggle }) {
         color: '#fff', flex: 1,
         overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
       }}>
-        {cat.label}
+        {cat.label ?? cat.key}
       </span>
 
       <div style={{
