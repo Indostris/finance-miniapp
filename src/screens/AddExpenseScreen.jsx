@@ -8,16 +8,16 @@ import IC_CAT_WEB       from '../assets/icons/categories/web.svg'
 import IC_CAT_HOUSE     from '../assets/icons/categories/house.svg'
 import IC_CAT_GAMING    from '../assets/icons/categories/gaming.svg'
 
-// ── Figma SVG assets ─────────────────────────────────────────────────────────
-const IC_TYPE_ADD = 'https://www.figma.com/api/mcp/asset/0bbb37ae-99ec-4eef-a610-3182faf1e6cb'
-const IC_TYPE_TRN = 'https://www.figma.com/api/mcp/asset/9b554be5-c241-4d12-9ac4-2fc694cb4dbe'
-const IC_TYPE_INC = 'https://www.figma.com/api/mcp/asset/f2d452bf-97f0-4f68-a67c-410b55c5c69d'
-const IC_MORE     = 'https://www.figma.com/api/mcp/asset/1ea56f75-fcaa-45a0-b53f-b3326d64c1d3'
-const IC_CALENDAR = 'https://www.figma.com/api/mcp/asset/a6a66353-2303-4dd5-855b-dd6b8974e7a2'
-const IC_CARD     = 'https://www.figma.com/api/mcp/asset/b12e6732-587a-4438-8cc3-0a201d6ee9f5'
-const IC_CHEVRON  = 'https://www.figma.com/api/mcp/asset/347f8f0d-a9e8-491a-843c-c09447c3d6cd'
-const IC_DELETE   = 'https://www.figma.com/api/mcp/asset/0070a0a5-688c-4d5a-b338-f40ad1874f61'
-const IC_BACK     = 'https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8'
+// ── Local assets ─────────────────────────────────────────────────────────────
+import IC_TYPE_ADD from '../assets/icons/ui/type-add.png'
+import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.png'
+import IC_TYPE_INC from '../assets/icons/ui/type-income.png'
+import IC_MORE     from '../assets/icons/ui/more.png'
+import IC_CALENDAR from '../assets/icons/ui/calendar.png'
+import IC_CARD     from '../assets/icons/ui/card.png'
+import IC_CHEVRON  from '../assets/icons/ui/chevron.png'
+import IC_DELETE   from '../assets/icons/ui/delete.png'
+import IC_BACK     from '../assets/icons/ui/back.png'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const NAV_TYPES = [

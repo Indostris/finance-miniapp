@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import IC_BACK from '../assets/icons/ui/back.png'
 
 // ── Mock AI parser ────────────────────────────────────────────────────────────
 // Replace with real API call (Claude / OpenAI) in production
@@ -255,7 +256,7 @@ export default function AssistantScreen({ onBack }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
-            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>
 
@@ -532,7 +533,7 @@ function EditItemScreen({ item, onBack }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
-            <img src="https://www.figma.com/api/mcp/asset/ac249b7c-6580-45de-8141-f0c0c5cf34a8" alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>
 

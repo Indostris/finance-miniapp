@@ -1,49 +1,23 @@
 import React, { useState } from 'react'
 import BackButton from '../components/BackButton'
+import icWeb      from '../assets/icons/categories/web.svg'
+import icMeal     from '../assets/icons/categories/meal.svg'
+import icHouse    from '../assets/icons/categories/house.svg'
+import icClothing from '../assets/icons/categories/clothing.svg'
+import icGrocery  from '../assets/icons/categories/grocery.svg'
+import icTransport from '../assets/icons/categories/transport.svg'
+import icGaming   from '../assets/icons/categories/gaming.svg'
+import icOther    from '../assets/icons/categories/other.svg'
 
-// ── Category icons from Figma node 8006:20770 (40×40 base component) ─────────
-// Each icon has exact pixel dimensions for perfect centering, no distortion
 const CATEGORIES = [
-  {
-    id: 0, label: 'Online purchase', color: '#FF2D55',
-    icon: 'https://www.figma.com/api/mcp/asset/ca4e81ad-ed99-4e0d-9368-dee2ab1fd193',
-    iw: 19.883, ih: 19.727,
-  },
-  {
-    id: 1, label: 'Eats', color: '#6155F5',
-    icon: 'https://www.figma.com/api/mcp/asset/c06fb12e-cb79-4505-9dcb-5011169918af',
-    iw: 13.425, ih: 22.646,
-  },
-  {
-    id: 2, label: 'Home', color: '#0088FF',
-    icon: 'https://www.figma.com/api/mcp/asset/6f1af81e-12e3-4870-9240-a19156ba0066',
-    iw: 23.32, ih: 20.537,
-  },
-  {
-    id: 3, label: 'Clothing', color: '#FF8D28',
-    icon: 'https://www.figma.com/api/mcp/asset/eb5a14f5-e8d1-4c7d-bbca-08ccac5c7493',
-    iw: 25.72, ih: 21.27,
-  },
-  {
-    id: 4, label: 'Grocery', color: '#FF383C',
-    icon: 'https://www.figma.com/api/mcp/asset/6741e452-f86a-47fb-a20f-c0630a70f4e1',
-    iw: 22.539, ih: 19.199,
-  },
-  {
-    id: 5, label: 'Transport', color: '#34C759',
-    icon: 'https://www.figma.com/api/mcp/asset/7f3d8250-ffc6-4cb6-bcff-8a576afe5e8f',
-    iw: 27.836, ih: 12.57,
-  },
-  {
-    id: 6, label: 'Entertainment', color: '#FF2D55',
-    icon: 'https://www.figma.com/api/mcp/asset/2a084be1-9c5d-43a8-865d-fe8d33de7455',
-    iw: 28.193, ih: 17.695,
-  },
-  {
-    id: 7, label: 'Custom', color: '#8E8E93',
-    icon: 'https://www.figma.com/api/mcp/asset/0fdba60f-13c6-44cd-8342-f33d0cd17340',
-    iw: 14.578, ih: 2.961,
-  },
+  { id: 0, label: 'Online purchase', icon: icWeb       },
+  { id: 1, label: 'Eats',            icon: icMeal      },
+  { id: 2, label: 'Home',            icon: icHouse     },
+  { id: 3, label: 'Clothing',        icon: icClothing  },
+  { id: 4, label: 'Grocery',         icon: icGrocery   },
+  { id: 5, label: 'Transport',       icon: icTransport },
+  { id: 6, label: 'Entertainment',   icon: icGaming    },
+  { id: 7, label: 'Custom',          icon: icOther     },
 ]
 
 const CHECK_CHAR = '\u{100185}'
@@ -119,37 +93,8 @@ export default function CategoryScreen({ onBack, onContinue }) {
   )
 }
 
-// ── Category icon — exact Figma structure ─────────────────────────────────────
-function CategoryIcon({ color, icon, iw, ih }) {
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 12,
-      background: color,
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
-      {/* Icon absolutely centered with exact pixel size — mix-blend: plus-lighter */}
-      <div style={{
-        position: 'absolute',
-        left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: iw, height: ih,
-        mixBlendMode: 'plus-lighter',
-      }}>
-        <img
-          src={icon}
-          alt=""
-          style={{ display: 'block', width: '100%', height: '100%' }}
-        />
-      </div>
-      {/* Top-shine gradient overlay — mix-blend: screen, sibling of icon */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  )
+function CategoryIcon({ icon }) {
+  return <img src={icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
 }
 
 function CategoryChip({ cat, selected, onToggle }) {
@@ -169,7 +114,7 @@ function CategoryChip({ cat, selected, onToggle }) {
         transition: 'opacity 0.12s',
       }}
     >
-      <CategoryIcon color={cat.color} icon={cat.icon} iw={cat.iw} ih={cat.ih} />
+      <CategoryIcon icon={cat.icon} />
 
       <span style={{
         fontFamily: "'SF Pro', -apple-system, sans-serif",

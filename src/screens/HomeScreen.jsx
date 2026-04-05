@@ -2,34 +2,31 @@ import React, { useState, useRef } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
 import AssistantScreen  from './AssistantScreen'
 
-// ── Figma SVG assets ──────────────────────────────────────────────────────────
-// Category icons (40×40 base, exact inner dimensions from Figma node 8109:6164)
-const IC_CAT_HOUSE         = 'https://www.figma.com/api/mcp/asset/8e32fa90-7c71-46ea-b28b-0c2bff6e1049'
-const IC_CAT_GLOBE         = 'https://www.figma.com/api/mcp/asset/fec1fbd4-4c12-48ac-954f-2e2d09e7f2df'
-const IC_CAT_CLOTHING      = 'https://www.figma.com/api/mcp/asset/0be5cd94-9208-4dce-b544-00f716a7cfea'
-const IC_CAT_TAXI          = 'https://www.figma.com/api/mcp/asset/26d34d88-0b58-49ca-837c-673b68d8a128'
-const IC_CAT_ENTERTAINMENT = 'https://www.figma.com/api/mcp/asset/16ebb176-a091-47a3-b3bd-45c518e0bfd2'
-const IC_CAT_GROCERY       = 'https://www.figma.com/api/mcp/asset/e08106a6-e861-450e-93ab-3e87e6b00365'
-const IC_CAT_OTHER         = 'https://www.figma.com/api/mcp/asset/6424d656-c615-42fd-8d3f-0872306d6369'
-// Tab bar icons
-const IC_TAB_HOME      = 'https://www.figma.com/api/mcp/asset/5d291ff7-4e52-4b10-9eef-67c6578bec59'
-const IC_TAB_ASSISTANT = 'https://www.figma.com/api/mcp/asset/056bec8c-366e-4482-92f6-15809d3ba1de'
-const IC_TAB_BUDGET    = 'https://www.figma.com/api/mcp/asset/ee3a5711-3aa0-4d5b-afc2-0dbddddb2047'
-const IC_TAB_ANALYTICS = 'https://www.figma.com/api/mcp/asset/40c46fba-9055-43c8-b857-721c87d94584'
-const IC_FAB_PLUS      = 'https://www.figma.com/api/mcp/asset/0b60fffe-6ded-484b-8cb8-e52264684cd7'
-// Toolbar
-const IC_PROFILE  = 'https://www.figma.com/api/mcp/asset/14b04d2f-2b8f-42f4-a9c0-dfd853f71f36'
-const IC_SETTINGS = 'https://www.figma.com/api/mcp/asset/33bf8d4e-2b84-470b-94d5-5f25922655ab'
+// ── Local assets ──────────────────────────────────────────────────────────────
+import IC_CAT_HOUSE         from '../assets/icons/categories/house.svg'
+import IC_CAT_GLOBE         from '../assets/icons/categories/web.svg'
+import IC_CAT_CLOTHING      from '../assets/icons/categories/clothing.svg'
+import IC_CAT_TAXI          from '../assets/icons/categories/transport.svg'
+import IC_CAT_ENTERTAINMENT from '../assets/icons/categories/gaming.svg'
+import IC_CAT_GROCERY       from '../assets/icons/categories/grocery.svg'
+import IC_CAT_OTHER         from '../assets/icons/categories/other.svg'
+import IC_TAB_HOME      from '../assets/icons/tabs/home.png'
+import IC_TAB_ASSISTANT from '../assets/icons/tabs/assistant.png'
+import IC_TAB_BUDGET    from '../assets/icons/tabs/budget.png'
+import IC_TAB_ANALYTICS from '../assets/icons/tabs/analytics.png'
+import IC_FAB_PLUS      from '../assets/icons/ui/fab-plus.png'
+import IC_PROFILE       from '../assets/icons/ui/profile.png'
+import IC_SETTINGS      from '../assets/icons/ui/settings.png'
 
 // ── Category icon definitions (icon url + exact inner px from Figma) ──────────
 const CAT = {
-  Grocery:       { url: IC_CAT_GROCERY,       iw: 22.539, ih: 19.199 },
-  Other:         { url: IC_CAT_OTHER,         iw: 14.578, ih: 2.961  },
-  Taxi:          { url: IC_CAT_TAXI,          iw: 27.836, ih: 12.57  },
-  Clothing:      { url: IC_CAT_CLOTHING,      iw: 25.72,  ih: 21.27  },
-  Entertainment: { url: IC_CAT_ENTERTAINMENT, iw: 28.193, ih: 17.695 },
-  House:         { url: IC_CAT_HOUSE,         iw: 23.32,  ih: 20.537 },
-  Globe:         { url: IC_CAT_GLOBE,         iw: 19.883, ih: 19.727 },
+  Grocery:       { url: IC_CAT_GROCERY       },
+  Other:         { url: IC_CAT_OTHER         },
+  Taxi:          { url: IC_CAT_TAXI          },
+  Clothing:      { url: IC_CAT_CLOTHING      },
+  Entertainment: { url: IC_CAT_ENTERTAINMENT },
+  House:         { url: IC_CAT_HOUSE         },
+  Globe:         { url: IC_CAT_GLOBE         },
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -62,10 +59,10 @@ const BILLS = [
 ]
 
 const TABS = [
-  { icon: IC_TAB_HOME,      iw: 27.984, ih: 24.645, label: 'Home'      },
-  { icon: IC_TAB_ASSISTANT, iw: 21.68,  ih: 26.73,  label: 'Assistant' },
-  { icon: IC_TAB_BUDGET,    iw: 23.355, ih: 21.574, label: 'Budget'    },
-  { icon: IC_TAB_ANALYTICS, iw: 23.906, ih: 23.895, label: 'Analytics' },
+  { icon: IC_TAB_HOME,      label: 'Home'      },
+  { icon: IC_TAB_ASSISTANT, label: 'Assistant' },
+  { icon: IC_TAB_BUDGET,    label: 'Budget'    },
+  { icon: IC_TAB_ANALYTICS, label: 'Analytics' },
 ]
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -238,29 +235,7 @@ export default function HomeScreen() {
 function CategoryIcon({ cat, color }) {
   const def = CAT[cat]
   if (!def) return <div style={{ width: 40, height: 40, borderRadius: 12, background: color, flexShrink: 0 }} />
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 12,
-      background: color,
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute',
-        left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: def.iw, height: def.ih,
-        mixBlendMode: 'plus-lighter',
-      }}>
-        <img src={def.url} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0) 100%)',
-        mixBlendMode: 'screen',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  )
+  return <img src={def.url} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -396,7 +371,7 @@ function TabBtn({ tab, active, onClick }) {
         <img
           src={tab.icon} alt={tab.label}
           style={{
-            width: tab.iw, height: tab.ih,
+            width: 28, height: 28, objectFit: 'contain',
             mixBlendMode: active ? 'normal' : 'plus-lighter',
             opacity: active ? 1 : 0.75,
           }}
