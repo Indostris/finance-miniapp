@@ -160,7 +160,7 @@ export default function HomeScreen({ userId }) {
 
       {/* Scrollable content */}
       <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 1 }}>
-        <div style={{ paddingTop: 'calc(var(--safe-top) + 78px)', paddingBottom: '120px' }}>
+        <div style={{ paddingTop: 'calc(var(--safe-top) + 74px)', paddingBottom: '120px' }}>
 
           {/* Balance */}
           <div style={{ textAlign: 'center', padding: '0 66px 32px' }}>
@@ -257,7 +257,7 @@ export default function HomeScreen({ userId }) {
       {/* Top bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        padding: 'calc(var(--safe-top) + 16px) 16px 10px',
+        padding: 'calc(var(--safe-top) + 12px) 16px 10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
           <span style={{
