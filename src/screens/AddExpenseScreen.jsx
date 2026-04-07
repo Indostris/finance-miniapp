@@ -494,23 +494,24 @@ function CategoryPicker({ categories, selected, onSelect, onClose, onAddCategory
 }
 
 // ── Add Category Modal ────────────────────────────────────────────────────────
-const CAT_ICON_OPTIONS = [
-  { key: 'other',         icon: IC_CAT_OTHER    },
-  { key: 'food',          icon: IC_CAT_MEAL     },
-  { key: 'grocery',       icon: IC_CAT_GROCERY  },
-  { key: 'clothing',      icon: IC_CAT_CLOTHING },
-  { key: 'transport',     icon: IC_CAT_TRANSPORT},
-  { key: 'home',          icon: IC_CAT_HOUSE    },
-  { key: 'shopping',      icon: IC_CAT_WEB      },
-  { key: 'entertainment', icon: IC_CAT_GAMING   },
+const CAT_EMOJI_OPTIONS = [
+  { key: 'other',         emoji: '🔘' },
+  { key: 'entertainment', emoji: '🎮' },
+  { key: 'grocery',       emoji: '🛒' },
+  { key: 'clothing',      emoji: '👕' },
+  { key: 'food',          emoji: '🍴' },
+  { key: 'home',          emoji: '🏠' },
+  { key: 'shopping',      emoji: '🌐' },
+  { key: 'transport',     emoji: '🚗' },
 ]
 const CAT_COLORS = ['#37a6ff','#27b537','#e67100','#dc4442','#9e59e2','#00a1bd','#ff2d55','#00e8b3']
 
 function AddCategoryModal({ onClose, onSave }) {
   const [name,         setName]         = useState('')
-  const [selectedIcon, setSelectedIcon] = useState(CAT_ICON_OPTIONS[0])
+  const [selectedEmoji, setSelectedEmoji] = useState(CAT_EMOJI_OPTIONS[1].emoji) // gamepad default
   const [color,        setColor]        = useState('#ff2d55')
   const [monthlyLimit, setMonthlyLimit] = useState(false)
+  const [limitAmount,  setLimitAmount]  = useState('')
 
   function handleSave() {
     const trimmed = name.trim()
@@ -518,8 +519,9 @@ function AddCategoryModal({ onClose, onSave }) {
     onSave({
       key:   'custom_' + Date.now(),
       label: trimmed,
-      icon:  selectedIcon.icon,
+      emoji: selectedEmoji,
       color,
+      icon:  null,
     })
   }
 
@@ -551,13 +553,12 @@ function AddCategoryModal({ onClose, onSave }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             position: 'relative', overflow: 'hidden',
           }}>
-            {/* shine overlay */}
             <div style={{
               position: 'absolute', inset: 0,
               background: 'linear-gradient(180deg, rgba(255,255,255,0.38) 0%, transparent 100%)',
               mixBlendMode: 'screen',
             }} />
-            <img src={selectedIcon.icon} alt="" style={{ width: 56, height: 56, display: 'block', mixBlendMode: 'plus-lighter' }} />
+            <span style={{ fontSize: 52, lineHeight: 1, position: 'relative' }}>{selectedEmoji}</span>
           </div>
         </div>
 
@@ -590,17 +591,18 @@ function AddCategoryModal({ onClose, onSave }) {
           }}>CATEGORY ICON</p>
           <div style={{ borderRadius: 24, background: '#1C1C1E', height: 52, display: 'flex', alignItems: 'center', paddingLeft: 16, paddingRight: 12 }}>
             <div style={{ flex: 1, display: 'flex', gap: 4, alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}>
-              {CAT_ICON_OPTIONS.map(opt => (
+              {CAT_EMOJI_OPTIONS.map(opt => (
                 <button
                   key={opt.key}
-                  onClick={() => setSelectedIcon(opt)}
+                  onClick={() => setSelectedEmoji(opt.emoji)}
                   style={{
                     width: 28, height: 28, flexShrink: 0, border: 'none', cursor: 'pointer', padding: 2,
                     background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    opacity: selectedIcon.key === opt.key ? 1 : 0.3,
+                    fontSize: 20,
+                    opacity: selectedEmoji === opt.emoji ? 1 : 0.3,
                   }}
                 >
-                  <img src={opt.icon} alt="" style={{ width: 24, height: 24, display: 'block', mixBlendMode: 'plus-lighter' }} />
+                  {opt.emoji}
                 </button>
               ))}
             </div>
@@ -644,19 +646,17 @@ function AddCategoryModal({ onClose, onSave }) {
 
         {/* Monthly limit toggle */}
         <div style={{ padding: '8px 16px 24px' }}>
-          <div style={{ borderRadius: 26, background: '#1C1C1E', padding: 16 }}>
+          <div style={{ borderRadius: 26, background: '#1C1C1E', padding: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {/* Toggle row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#0088FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="white" strokeWidth="1.3"/>
-                    <path d="M2 6h12" stroke="white" strokeWidth="1.3"/>
-                    <rect x="5" y="9" width="2" height="2" rx="0.3" fill="white"/>
-                  </svg>
-                </div>
+                <img
+                  src="https://www.figma.com/api/mcp/asset/4800b4be-8092-4029-a446-0b21c5ee113a"
+                  alt=""
+                  style={{ width: 30, height: 30, display: 'block', flexShrink: 0 }}
+                />
                 <span style={{ fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px' }}>Monthly limit</span>
               </div>
-              {/* Toggle */}
               <button
                 onClick={() => setMonthlyLimit(v => !v)}
                 style={{
@@ -674,6 +674,27 @@ function AddCategoryModal({ onClose, onSave }) {
                 }} />
               </button>
             </div>
+            {/* Limit amount input — shown when toggle ON */}
+            {monthlyLimit && (
+              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
+                <div style={{ borderRadius: 16, background: 'rgba(255,255,255,0.07)', height: 48, display: 'flex', alignItems: 'center', paddingLeft: 14, paddingRight: 14, gap: 8 }}>
+                  <span style={{ fontSize: 17, color: 'rgba(235,235,245,0.5)', fontWeight: 400 }}>Limit:</span>
+                  <input
+                    type="number"
+                    value={limitAmount}
+                    onChange={e => setLimitAmount(e.target.value)}
+                    placeholder="0"
+                    style={{
+                      flex: 1, background: 'none', border: 'none', outline: 'none',
+                      fontFamily: "'SF Pro', -apple-system, sans-serif",
+                      fontSize: 17, fontWeight: 510, color: '#fff', letterSpacing: '-0.43px',
+                      textAlign: 'right',
+                    }}
+                  />
+                  <span style={{ fontSize: 15, color: 'rgba(235,235,245,0.4)', fontWeight: 400 }}>/ mo</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
