@@ -1,7 +1,5 @@
 import os
 import asyncio
-import torch
-import librosa
 import warnings
 import subprocess
 import shutil
@@ -9,6 +7,14 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 warnings.filterwarnings("ignore")
+
+try:
+    import torch
+    import librosa
+    from transformers import WhisperProcessor, WhisperForConditionalGeneration
+    VOICE_ENABLED = True
+except ImportError:
+    VOICE_ENABLED = False
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
@@ -19,7 +25,6 @@ from typing import List
 import uvicorn
 
 from dotenv import load_dotenv
-from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
 from llama_text_separate import extract_finance_data
 from database import engine, get_db, Base
@@ -35,7 +40,7 @@ from schemas import (
 load_dotenv()
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-device   = "cuda" if torch.cuda.is_available() else "cpu"
+device   = "cuda" if (VOICE_ENABLED and torch.cuda.is_available()) else "cpu"
 
 # Category seed data — mirrors CATEGORY_META in the frontend
 CATEGORY_SEED = [
@@ -75,13 +80,16 @@ async def lifespan(app: FastAPI):
 
     # ── Whisper model ──────────────────────────────────────────────────────────
     global processor, model
-    print(f"Device: {device}")
-    print("Whisper model yuklanmoqda...")
-    processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-    model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-    model = model.to(device)
-    model = torch.compile(model)
-    print("Whisper model yuklandi!")
+    if VOICE_ENABLED:
+        print(f"Device: {device}")
+        print("Whisper model yuklanmoqda...")
+        processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+        model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+        model = model.to(device)
+        model = torch.compile(model)
+        print("Whisper model yuklandi!")
+    else:
+        print("Voice features disabled (torch not available)")
 
     yield
 
