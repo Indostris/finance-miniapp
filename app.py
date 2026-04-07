@@ -78,18 +78,7 @@ async def lifespan(app: FastAPI):
                 CATEGORY_SEED,
             )
 
-    # ── Whisper model ──────────────────────────────────────────────────────────
-    global processor, model
-    if VOICE_ENABLED:
-        print(f"Device: {device}")
-        print("Whisper model yuklanmoqda...")
-        processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-        model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-        model = model.to(device)
-        model = torch.compile(model)
-        print("Whisper model yuklandi!")
-    else:
-        print("Voice features disabled (torch not available)")
+    print("Voice features disabled (torch not available)" if not VOICE_ENABLED else "Voice ready (lazy load)")
 
     yield
 
@@ -106,11 +95,26 @@ app.add_middleware(
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+def _load_model():
+    global processor, model
+    if processor is not None:
+        return
+    print("Loading Whisper model...")
+    processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+    model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+    model = model.to(device)
+    model = torch.compile(model)
+    print("Whisper model loaded!")
+
+
 def _transcribe(audio_path: str) -> str:
+    if not VOICE_ENABLED:
+        raise RuntimeError("Voice features unavailable: torch not installed")
+    _load_model()
     wav_path = audio_path.rsplit(".", 1)[0] + ".wav"
     subprocess.run(
         ["ffmpeg", "-i", audio_path, "-ar", "16000", "-ac", "1", wav_path, "-y"],
-        capture_output=True,
+        capture_output=True, check=True,
     )
     waveform, _ = librosa.load(wav_path, sr=16000, mono=True)
     inputs = processor(waveform, sampling_rate=16000, return_tensors="pt", language="uz")

@@ -61,11 +61,10 @@ standard-sunau==3.13.0
 sympy==1.14.0
 threadpoolctl==3.6.0
 tokenizers==0.22.2
-torch==2.11.0
-torchaudio==2.11.0
-torchcodec==0.11.0
+torch
+torchaudio
 tqdm==4.67.3
-transformers==5.4.0
+transformers
 typer==0.24.1
 typing_extensions==4.15.0
 urllib3==2.6.3
