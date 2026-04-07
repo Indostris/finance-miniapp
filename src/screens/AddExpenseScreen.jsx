@@ -97,20 +97,10 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
   const [showPicker, setShowPicker] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
-  async function handleAddCategory(newCat) {
+  function handleAddCategory(newCat) {
     const updated = [...customCats, newCat]
     setCustomCats(updated)
     saveCustomCats(updated)
-    // Persist to DB so HomeScreen can show the correct icon
-    try {
-      await fetch(`${API_BASE}/categories`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: newCat.key, label: newCat.label, icon: newCat.emoji, color: newCat.color }),
-      })
-    } catch (e) {
-      console.error('Failed to save category:', e)
-    }
   }
 
   // Set category from DB: prefer initialCategoryKey, fallback to 'other'
@@ -517,22 +507,30 @@ const CAT_EMOJI_OPTIONS = [
 const CAT_COLORS = ['#37a6ff','#27b537','#e67100','#dc4442','#9e59e2','#00a1bd','#ff2d55','#00e8b3']
 
 function AddCategoryModal({ onClose, onSave }) {
-  const [name,         setName]         = useState('')
-  const [selectedEmoji, setSelectedEmoji] = useState(CAT_EMOJI_OPTIONS[1].emoji) // gamepad default
-  const [color,        setColor]        = useState('#ff2d55')
-  const [monthlyLimit, setMonthlyLimit] = useState(false)
-  const [limitAmount,  setLimitAmount]  = useState('')
+  const [name,          setName]          = useState('')
+  const [selectedEmoji, setSelectedEmoji] = useState(CAT_EMOJI_OPTIONS[1].emoji)
+  const [color,         setColor]         = useState('#ff2d55')
+  const [monthlyLimit,  setMonthlyLimit]  = useState(false)
+  const [limitAmount,   setLimitAmount]   = useState('')
+  const [saving,        setSaving]        = useState(false)
 
-  function handleSave() {
+  async function handleSave() {
     const trimmed = name.trim()
-    if (!trimmed) return
-    onSave({
-      key:   'custom_' + Date.now(),
-      label: trimmed,
-      emoji: selectedEmoji,
-      color,
-      icon:  null,
-    })
+    if (!trimmed || saving) return
+    setSaving(true)
+    const newCat = { key: 'custom_' + Date.now(), label: trimmed, emoji: selectedEmoji, color, icon: null }
+    // Save to DB first — so category_id resolves correctly when transaction is created
+    try {
+      await fetch(`${API_BASE}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: newCat.key, label: newCat.label, icon: newCat.emoji, color: newCat.color }),
+      })
+    } catch (e) {
+      console.error('Failed to save category:', e)
+    }
+    setSaving(false)
+    onSave(newCat)
   }
 
   return (
@@ -718,17 +716,18 @@ function AddCategoryModal({ onClose, onSave }) {
       <div style={{ padding: '14px 10px', paddingBottom: 'calc(28px + var(--safe-bottom))', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <button
           onClick={handleSave}
+          disabled={saving}
           style={{
             width: '100%', height: 60, borderRadius: 999, border: 'none',
-            background: name.trim() ? '#fff' : 'rgba(255,255,255,0.15)',
-            color: name.trim() ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
+            background: (name.trim() && !saving) ? '#fff' : 'rgba(255,255,255,0.15)',
+            color: (name.trim() && !saving) ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
             fontFamily: "'SF Pro', -apple-system, sans-serif",
             fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
-            cursor: name.trim() ? 'pointer' : 'default',
+            cursor: (name.trim() && !saving) ? 'pointer' : 'default',
             transition: 'background 0.2s, color 0.2s',
           }}
         >
-          Continue
+          {saving ? 'Saving...' : 'Continue'}
         </button>
       </div>
     </div>
