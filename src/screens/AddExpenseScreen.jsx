@@ -680,9 +680,13 @@ function AddCategoryModal({ onClose, onSave }) {
                 <div style={{ borderRadius: 16, background: 'rgba(255,255,255,0.07)', height: 48, display: 'flex', alignItems: 'center', paddingLeft: 14, paddingRight: 14, gap: 8 }}>
                   <span style={{ fontSize: 17, color: 'rgba(235,235,245,0.5)', fontWeight: 400 }}>Limit:</span>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={limitAmount}
-                    onChange={e => setLimitAmount(e.target.value)}
+                    onChange={e => {
+                      const raw = e.target.value.replace(/[^\d]/g, '')
+                      setLimitAmount(raw ? parseInt(raw, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') : '')
+                    }}
                     placeholder="0"
                     style={{
                       flex: 1, background: 'none', border: 'none', outline: 'none',

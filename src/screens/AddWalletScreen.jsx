@@ -27,7 +27,7 @@ function formatAmt(str) {
 }
 
 // ── Step 1: Wallet details ─────────────────────────────────────────────────────
-function Step1({ name, setName, currency, setCurrency, icon, setIcon, limitEnabled, setLimitEnabled, onContinue }) {
+function Step1({ name, setName, currency, setCurrency, icon, setIcon, limitEnabled, setLimitEnabled, limitAmount, setLimitAmount, onContinue }) {
   const canContinue = name.trim().length > 0
 
   return (
@@ -152,39 +152,57 @@ function Step1({ name, setName, currency, setCurrency, icon, setIcon, limitEnabl
 
         {/* Monthly limit toggle */}
         <div style={{ padding: '8px 16px' }}>
-          <div style={{
-            background: 'rgba(118,118,128,0.18)', borderRadius: 26,
-            padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{
-                width: 30, height: 30, borderRadius: 8, background: '#0088FF',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-              }}>
-                📊
+          <div style={{ borderRadius: 26, background: '#1C1C1E', padding: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <img
+                  src="https://www.figma.com/api/mcp/asset/4800b4be-8092-4029-a446-0b21c5ee113a"
+                  alt=""
+                  style={{ width: 30, height: 30, display: 'block', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px' }}>Monthly limit</span>
               </div>
-              <span style={{
-                fontFamily: "'SF Pro', -apple-system, sans-serif",
-                fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px',
-              }}>Monthly limit</span>
+              <button
+                onClick={() => setLimitEnabled(v => !v)}
+                style={{
+                  width: 51, height: 28, borderRadius: 100, border: 'none', cursor: 'pointer', flexShrink: 0,
+                  background: limitEnabled ? '#34C759' : 'rgba(120,120,128,0.32)',
+                  position: 'relative', transition: 'background 0.2s',
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: 2, borderRadius: '50%', background: '#fff',
+                  width: 24, height: 24,
+                  left: limitEnabled ? 'calc(100% - 26px)' : 2,
+                  transition: 'left 0.2s',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }} />
+              </button>
             </div>
-            <button
-              onClick={() => setLimitEnabled(v => !v)}
-              style={{
-                width: 51, height: 28, borderRadius: 100, border: 'none', cursor: 'pointer',
-                background: limitEnabled ? '#30D158' : 'rgba(120,120,128,0.32)',
-                position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-              }}
-            >
-              <div style={{
-                position: 'absolute', top: 2,
-                left: limitEnabled ? 25 : 2,
-                width: 24, height: 24, borderRadius: '50%',
-                background: '#fff',
-                transition: 'left 0.2s',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              }} />
-            </button>
+            {limitEnabled && (
+              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
+                <div style={{ borderRadius: 16, background: 'rgba(255,255,255,0.07)', height: 48, display: 'flex', alignItems: 'center', paddingLeft: 14, paddingRight: 14, gap: 8 }}>
+                  <span style={{ fontSize: 17, color: 'rgba(235,235,245,0.5)', fontWeight: 400 }}>Limit:</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={limitAmount}
+                    onChange={e => {
+                      const raw = e.target.value.replace(/[^\d]/g, '')
+                      setLimitAmount(raw ? parseInt(raw, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') : '')
+                    }}
+                    placeholder="0"
+                    style={{
+                      flex: 1, background: 'none', border: 'none', outline: 'none',
+                      fontFamily: "'SF Pro', -apple-system, sans-serif",
+                      fontSize: 17, fontWeight: 510, color: '#fff', letterSpacing: '-0.43px',
+                      textAlign: 'right',
+                    }}
+                  />
+                  <span style={{ fontSize: 15, color: 'rgba(235,235,245,0.4)', fontWeight: 400 }}>/ mo</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -194,8 +212,8 @@ function Step1({ name, setName, currency, setCurrency, icon, setIcon, limitEnabl
             onClick={() => canContinue && onContinue()}
             style={{
               width: '100%', height: 60, borderRadius: 999, border: 'none',
-              background: canContinue ? 'rgba(118,118,128,0.24)' : 'rgba(118,118,128,0.1)',
-              color: canContinue ? '#fff' : 'rgba(235,235,245,0.25)',
+              background: canContinue ? '#fff' : 'rgba(255,255,255,0.15)',
+              color: canContinue ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
               fontFamily: "'SF Pro', -apple-system, sans-serif",
               fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
               cursor: canContinue ? 'pointer' : 'default',
@@ -328,6 +346,7 @@ export default function AddWalletScreen({ userId, onClose, onCreated }) {
   const [currency,      setCurrency]     = useState('UZS')
   const [icon,          setIcon]         = useState('💰')
   const [limitEnabled,  setLimitEnabled] = useState(false)
+  const [limitAmount,   setLimitAmount]  = useState('')
   const [digits,        setDigits]       = useState('')
   const [saving,        setSaving]       = useState(false)
 
@@ -411,6 +430,7 @@ export default function AddWalletScreen({ userId, onClose, onCreated }) {
             currency={currency} setCurrency={setCurrency}
             icon={icon} setIcon={setIcon}
             limitEnabled={limitEnabled} setLimitEnabled={setLimitEnabled}
+            limitAmount={limitAmount} setLimitAmount={setLimitAmount}
             onContinue={() => setStep(2)}
           />
         ) : (
