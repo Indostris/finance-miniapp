@@ -34,7 +34,16 @@ import IC_BACK     from '../assets/icons/ui/back.svg'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
-// fallback categories shown before DB loads
+// ── Custom categories (persisted in localStorage) ─────────────────────────────
+const CUSTOM_CATS_KEY = 'custom_categories'
+function loadCustomCats() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY) || '[]') } catch { return [] }
+}
+function saveCustomCats(cats) {
+  localStorage.setItem(CUSTOM_CATS_KEY, JSON.stringify(cats))
+}
+
+// ── fallback categories shown before DB loads
 const FALLBACK_CATEGORIES = [
   { key: 'other',         label: 'Other',         icon: IC_CAT_OTHER    },
   { key: 'grocery',       label: 'Grocery',        icon: IC_CAT_GROCERY  },
@@ -77,6 +86,9 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
     })),
   [dbCats])
 
+  const [customCats, setCustomCats] = useState(loadCustomCats)
+  const allCategories = useMemo(() => [...CATEGORIES, ...customCats], [CATEGORIES, customCats])
+
   const [type,       setType]       = useState(VALID_TYPES.has(initType) ? initType : 'Expense')
   const [digits,     setDigits]     = useState(initialAmount)
   const [note,       setNote]       = useState(initialNote)
@@ -85,11 +97,17 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
   const [showPicker, setShowPicker] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
+  function handleAddCategory(newCat) {
+    const updated = [...customCats, newCat]
+    setCustomCats(updated)
+    saveCustomCats(updated)
+  }
+
   // Set category from DB: prefer initialCategoryKey, fallback to 'other'
   useEffect(() => {
-    if (CATEGORIES.length > 0) {
+    if (allCategories.length > 0) {
       const target = initialCategoryKey ?? 'other'
-      setCategory(CATEGORIES.find(c => c.key === target) ?? CATEGORIES.find(c => c.key === 'other') ?? CATEGORIES[0])
+      setCategory(allCategories.find(c => c.key === target) ?? allCategories.find(c => c.key === 'other') ?? allCategories[0])
     }
   }, [CATEGORIES])
 
@@ -251,7 +269,7 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
 
           {/* Category chip */}
           <button onClick={() => setShowPicker(true)} style={chipStyle}>
-            <img src={selectedCategory.icon} alt="" style={{ width: 28, height: 28, display: 'block', flexShrink: 0 }} />
+            <CategoryIcon cat={selectedCategory} size={28} />
             {selectedCategory.label}
             <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
           </button>
@@ -315,10 +333,11 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
       {/* Category Picker overlay */}
       {showPicker && (
         <CategoryPicker
-          categories={CATEGORIES}
+          categories={allCategories}
           selected={selectedCategory}
           onSelect={cat => { setCategory(cat); setShowPicker(false) }}
           onClose={() => setShowPicker(false)}
+          onAddCategory={handleAddCategory}
         />
       )}
     </div>
@@ -334,9 +353,27 @@ const chipStyle = {
   color: '#fff', fontSize: 17, fontWeight: 510,
 }
 
+// ── Category Icon (supports both SVG and custom emoji+color) ──────────────────
+function CategoryIcon({ cat, size = 40 }) {
+  if (cat?.emoji) {
+    return (
+      <div style={{
+        width: size, height: size, borderRadius: size * 0.3,
+        background: cat.color ?? '#8E8E93', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: size * 0.55,
+      }}>
+        {cat.emoji}
+      </div>
+    )
+  }
+  return <img src={cat?.icon} alt="" style={{ width: size, height: size, display: 'block', flexShrink: 0 }} />
+}
+
 // ── Category Picker ───────────────────────────────────────────────────────────
-function CategoryPicker({ categories, selected, onSelect, onClose }) {
+function CategoryPicker({ categories, selected, onSelect, onClose, onAddCategory }) {
   const [pending, setPending] = useState(selected)
+  const [showAdd, setShowAdd] = useState(false)
 
   return (
     <div style={{
@@ -379,7 +416,7 @@ function CategoryPicker({ categories, selected, onSelect, onClose }) {
                 borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <img src={cat.icon} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
+              <CategoryIcon cat={cat} size={40} />
               <span style={{
                 flex: 1, textAlign: 'left',
                 fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -403,6 +440,7 @@ function CategoryPicker({ categories, selected, onSelect, onClose }) {
 
           {/* Add category row */}
           <button
+            onClick={() => setShowAdd(true)}
             style={{
               width: '100%', display: 'flex', alignItems: 'center',
               gap: 12, padding: '12px 16px',
@@ -435,6 +473,224 @@ function CategoryPicker({ categories, selected, onSelect, onClose }) {
             background: '#fff', color: '#1A1B1B',
             fontFamily: "'SF Pro', -apple-system, sans-serif",
             fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
+          }}
+        >
+          Continue
+        </button>
+      </div>
+
+      {showAdd && (
+        <AddCategoryModal
+          onClose={() => setShowAdd(false)}
+          onSave={newCat => {
+            onAddCategory(newCat)
+            setPending(newCat)
+            setShowAdd(false)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Add Category Modal ────────────────────────────────────────────────────────
+const CAT_ICON_OPTIONS = [
+  { key: 'other',         icon: IC_CAT_OTHER    },
+  { key: 'food',          icon: IC_CAT_MEAL     },
+  { key: 'grocery',       icon: IC_CAT_GROCERY  },
+  { key: 'clothing',      icon: IC_CAT_CLOTHING },
+  { key: 'transport',     icon: IC_CAT_TRANSPORT},
+  { key: 'home',          icon: IC_CAT_HOUSE    },
+  { key: 'shopping',      icon: IC_CAT_WEB      },
+  { key: 'entertainment', icon: IC_CAT_GAMING   },
+]
+const CAT_COLORS = ['#37a6ff','#27b537','#e67100','#dc4442','#9e59e2','#00a1bd','#ff2d55','#00e8b3']
+
+function AddCategoryModal({ onClose, onSave }) {
+  const [name,         setName]         = useState('')
+  const [selectedIcon, setSelectedIcon] = useState(CAT_ICON_OPTIONS[0])
+  const [color,        setColor]        = useState('#ff2d55')
+  const [monthlyLimit, setMonthlyLimit] = useState(false)
+
+  function handleSave() {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    onSave({
+      key:   'custom_' + Date.now(),
+      label: trimmed,
+      icon:  selectedIcon.icon,
+      color,
+    })
+  }
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', zIndex: 30 }}>
+
+      {/* Back button */}
+      <div style={{
+        padding: 'calc(var(--safe-top) + 6px) 16px 0',
+        height: 'calc(var(--safe-top) + 52px)', flexShrink: 0,
+      }}>
+        <button
+          onClick={onClose}
+          style={{ width: 60, height: 45, borderRadius: 999, background: '#1C1C1E', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
+
+        {/* Large icon preview */}
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 16 }}>
+          <div style={{
+            width: 104, height: 104, borderRadius: 24,
+            background: color, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* shine overlay */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.38) 0%, transparent 100%)',
+              mixBlendMode: 'screen',
+            }} />
+            <img src={selectedIcon.icon} alt="" style={{ width: 56, height: 56, display: 'block', mixBlendMode: 'plus-lighter' }} />
+          </div>
+        </div>
+
+        {/* Name input */}
+        <div style={{ padding: '8px 16px' }}>
+          <div style={{ borderRadius: 24, background: '#1C1C1E', height: 52, display: 'flex', alignItems: 'center', paddingLeft: 16, paddingRight: 16 }}>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Category Name"
+              maxLength={30}
+              autoFocus
+              style={{
+                flex: 1, background: 'none', border: 'none', outline: 'none',
+                fontFamily: "'SF Pro', -apple-system, sans-serif",
+                fontSize: 17, fontWeight: 400, color: '#fff', letterSpacing: '-0.43px',
+              }}
+            />
+          </div>
+          <p style={{ fontSize: 13, color: 'rgba(235,235,245,0.5)', letterSpacing: '-0.5px', lineHeight: '18px', margin: '6px 16px 0' }}>
+            Choose a clear, short name your members will recognize.
+          </p>
+        </div>
+
+        {/* Category icon section */}
+        <div style={{ padding: '8px 16px' }}>
+          <p style={{
+            fontSize: 12, fontWeight: 510, letterSpacing: '-0.2px', textTransform: 'uppercase',
+            color: 'rgba(235,235,245,0.5)', padding: '8px 16px',
+          }}>CATEGORY ICON</p>
+          <div style={{ borderRadius: 24, background: '#1C1C1E', height: 52, display: 'flex', alignItems: 'center', paddingLeft: 16, paddingRight: 12 }}>
+            <div style={{ flex: 1, display: 'flex', gap: 4, alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}>
+              {CAT_ICON_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => setSelectedIcon(opt)}
+                  style={{
+                    width: 28, height: 28, flexShrink: 0, border: 'none', cursor: 'pointer', padding: 2,
+                    background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: selectedIcon.key === opt.key ? 1 : 0.3,
+                  }}
+                >
+                  <img src={opt.icon} alt="" style={{ width: 24, height: 24, display: 'block', mixBlendMode: 'plus-lighter' }} />
+                </button>
+              ))}
+            </div>
+            <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 2.5L9.5 7L5 11.5" stroke="rgba(235,235,245,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <p style={{ fontSize: 13, color: 'rgba(235,235,245,0.5)', letterSpacing: '-0.43px', lineHeight: '16px', margin: '6px 16px 0' }}>
+            Select a different icon for this category
+          </p>
+        </div>
+
+        {/* Category color section */}
+        <div style={{ padding: '8px 16px' }}>
+          <p style={{
+            fontSize: 12, fontWeight: 510, letterSpacing: '-0.2px', textTransform: 'uppercase',
+            color: 'rgba(235,235,245,0.5)', padding: '8px 16px',
+          }}>CATEGORY COLOR</p>
+          <div style={{ borderRadius: 24, background: '#1C1C1E', height: 52, display: 'flex', alignItems: 'center', paddingLeft: 16, paddingRight: 16 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {CAT_COLORS.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  style={{
+                    width: 32, height: 32, borderRadius: '50%', background: c,
+                    border: 'none', cursor: 'pointer', flexShrink: 0, position: 'relative',
+                    outline: color === c ? `3px solid ${c}` : '3px solid transparent',
+                    outlineOffset: 3,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          <p style={{ fontSize: 13, color: 'rgba(235,235,245,0.5)', letterSpacing: '-0.43px', lineHeight: '16px', margin: '6px 16px 0' }}>
+            Select a different color for this category
+          </p>
+        </div>
+
+        {/* Monthly limit toggle */}
+        <div style={{ padding: '8px 16px 24px' }}>
+          <div style={{ borderRadius: 26, background: '#1C1C1E', padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#0088FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="white" strokeWidth="1.3"/>
+                    <path d="M2 6h12" stroke="white" strokeWidth="1.3"/>
+                    <rect x="5" y="9" width="2" height="2" rx="0.3" fill="white"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: 16, fontWeight: 510, color: '#fff', letterSpacing: '-0.5px' }}>Monthly limit</span>
+              </div>
+              {/* Toggle */}
+              <button
+                onClick={() => setMonthlyLimit(v => !v)}
+                style={{
+                  width: 51, height: 28, borderRadius: 100, border: 'none', cursor: 'pointer', flexShrink: 0,
+                  background: monthlyLimit ? '#34C759' : 'rgba(120,120,128,0.32)',
+                  position: 'relative', transition: 'background 0.2s',
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: 2, borderRadius: '50%', background: '#fff',
+                  width: 24, height: 24,
+                  left: monthlyLimit ? 'calc(100% - 26px)' : 2,
+                  transition: 'left 0.2s',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Continue button */}
+      <div style={{ padding: '14px 10px', paddingBottom: 'calc(28px + var(--safe-bottom))', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <button
+          onClick={handleSave}
+          style={{
+            width: '100%', height: 60, borderRadius: 999, border: 'none',
+            background: name.trim() ? '#fff' : 'rgba(255,255,255,0.15)',
+            color: name.trim() ? '#1A1B1B' : 'rgba(255,255,255,0.35)',
+            fontFamily: "'SF Pro', -apple-system, sans-serif",
+            fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
+            cursor: name.trim() ? 'pointer' : 'default',
+            transition: 'background 0.2s, color 0.2s',
           }}
         >
           Continue

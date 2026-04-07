@@ -30,11 +30,11 @@ export default function App() {
     fetch(`${API_BASE}/users/${userId}`, { signal: controller.signal })
       .then(r => {
         clearTimeout(timeout)
-        if (r.ok)        return go('home')       // returning user → skip onboarding
-        if (r.status === 404) return go('onboarding') // new user → show onboarding
+        if (r.ok)        return go('home')
+        if (r.status === 404) return go('onboarding')
         throw new Error(`HTTP ${r.status}`)
       })
-      .catch(() => { clearTimeout(timeout); go('onboarding') }) // on network error, fall through to onboarding
+      .catch(() => { clearTimeout(timeout); go('onboarding') })
   }, [])
 
   // Called when OTP screen completes — register the user then continue
