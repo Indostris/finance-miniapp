@@ -38,7 +38,7 @@ const CATEGORY_META = {
   other:         { label: 'Other',     color: '#8E8E93' },
 }
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API = import.meta.env.VITE_API_URL ?? '/api'
 
 function fmt(n) { return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') }
 

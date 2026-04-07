@@ -2,7 +2,7 @@ import { useState } from 'react'
 import IC_BACK   from '../assets/icons/ui/back.svg'
 import IC_DELETE from '../assets/icons/ui/delete.svg'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 const CURRENCIES = [
   { key: 'UZS', label: 'Uzbek sum' },

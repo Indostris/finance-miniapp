@@ -135,7 +135,7 @@ async def transcribe_audio_api(file: UploadFile = File(...)):
         tmp_path = tmp.name
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(_executor, _transcribe, tmp_path)
-    return {"result": result}
+    return {"text": result}
 
 
 @app.post("/text_separate")
@@ -145,7 +145,7 @@ async def text_separate_api(payload: dict):
         raise HTTPException(400, "No text provided")
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(_executor, extract_finance_data, text)
-    return {"result": result}
+    return {"items": result}
 
 
 # ── Users ──────────────────────────────────────────────────────────────────────
@@ -310,4 +310,9 @@ async def delete_transaction(tx_id: int, db: AsyncSession = Depends(get_db)):
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=5000, reload=True)
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=5000,
+        reload=True,
+    )

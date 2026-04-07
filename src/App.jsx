@@ -5,7 +5,7 @@ import OTPScreen        from './screens/OTPScreen'
 import CategoryScreen   from './screens/CategoryScreen'
 import HomeScreen       from './screens/HomeScreen'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 const tg       = window.Telegram?.WebApp
 const TG_USER  = tg?.initDataUnsafe?.user

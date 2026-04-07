@@ -32,7 +32,7 @@ import IC_CHEVRON  from '../assets/icons/ui/chevron.svg'
 import IC_DELETE   from '../assets/icons/ui/delete.svg'
 import IC_BACK     from '../assets/icons/ui/back.svg'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 // fallback categories shown before DB loads
 const FALLBACK_CATEGORIES = [

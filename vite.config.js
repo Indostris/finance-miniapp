@@ -7,6 +7,13 @@ export default defineConfig({
   assetsInlineLimit: 1024 * 200, // inline all SVGs as base64 — no separate requests
   server: {
     host: true,
-    allowedHosts: ['unchangingly-undecorticated-brooklyn.ngrok-free.dev'],
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
 })

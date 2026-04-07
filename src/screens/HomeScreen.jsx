@@ -20,7 +20,7 @@ import IC_FAB_PLUS      from '../assets/icons/ic_fab_plus.svg'
 import IC_PROFILE       from '../assets/icons/ic_profile.svg'
 import IC_SETTINGS      from '../assets/icons/ic_settings.svg'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 // ── Inject rolling digit keyframes once ───────────────────────────────────────
 if (typeof document !== 'undefined' && !document.getElementById('droll-kf')) {
@@ -98,12 +98,7 @@ export default function HomeScreen({ userId }) {
       const accsArr = Array.isArray(accs) ? accs : []
       setAccounts(accsArr)
       setCategories(Array.isArray(cats) ? cats : [])
-      // Default to Cash account on first load
-      setSelectedAccount(prev => {
-        if (prev !== null) return prev
-        const cash = accsArr.find(a => a.name === 'Cash')
-        return cash ? cash.id : 'all'
-      })
+      setSelectedAccount(prev => prev !== null ? prev : 'all')
     }).catch(console.error)
   }
 
@@ -253,6 +248,12 @@ export default function HomeScreen({ userId }) {
         </div>
       </div>
 
+      {/* Progressive blur under top bar */}
+      <ProgressiveBlur edge="top" />
+
+      {/* Progressive blur above tab bar */}
+      <ProgressiveBlur edge="bottom" />
+
       {/* Top bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
@@ -279,8 +280,6 @@ export default function HomeScreen({ userId }) {
         </div>
       </div>
 
-      {/* Scroll Edge Effect - Soft (top) — from Figma node 8109:6313 */}
-      <ScrollEdgeEffect direction="top" />
 
       {/* Action menu */}
       {showMenu && (
@@ -499,42 +498,47 @@ function TabBtn({ tab, active, onClick }) {
   )
 }
 
-// Figma node 8109:6313 — "Scroll Edge Effect - Soft"
-// Outer: backdrop-filter blur(5px), NO mask (always active full height).
-// Inner: backdrop-filter blur(30px) + bg black + mix-blend-mode screen + opacity 0.9 + gradient mask (controls falloff).
-function ScrollEdgeEffect({ direction }) {
-  const isTop = direction === 'top'
-  const mask = isTop
-    ? 'linear-gradient(to bottom, black 0%, transparent 100%)'
-    : 'linear-gradient(to top,   black 0%, transparent 100%)'
-
-  return (
-    <div style={{
-      position: 'absolute',
-      [isTop ? 'top' : 'bottom']: 0,
-      left: 0, right: 0,
-      height: 120,
-      zIndex: 5,
-      pointerEvents: 'none',
-      backdropFilter: 'blur(5px)',
-      WebkitBackdropFilter: 'blur(5px)',
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)',
-        background: '#000',
-        mixBlendMode: 'screen',
-        opacity: 0.9,
-        maskImage: mask,
-        WebkitMaskImage: mask,
-      }} />
-    </div>
-  )
-}
 
 const ACTION_ITEMS = ['Debt', 'Expense', 'Income', 'Transfer']
 const ACTION_ICONS = { Debt: '→', Expense: '+', Income: '↓', Transfer: '⇄' }
+
+function ProgressiveBlur({ edge = 'top' }) {
+  const top = edge === 'top'
+  const layers = top ? [
+    { blur: '32px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 30%)' },
+    { blur: '16px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 40%)' },
+    { blur:  '8px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 55%)' },
+    { blur:  '4px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 65%)' },
+    { blur:  '2px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 80%)' },
+    { blur:  '1px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)' },
+  ] : [
+    { blur: '32px', mask: 'linear-gradient(rgba(0,0,0,0) 70%, rgba(0,0,0,1) 90%, rgba(0,0,0,1) 100%)' },
+    { blur: '16px', mask: 'linear-gradient(rgba(0,0,0,0) 60%, rgba(0,0,0,1) 80%, rgba(0,0,0,1) 100%)' },
+    { blur:  '8px', mask: 'linear-gradient(rgba(0,0,0,0) 45%, rgba(0,0,0,1) 70%, rgba(0,0,0,1) 100%)' },
+    { blur:  '4px', mask: 'linear-gradient(rgba(0,0,0,0) 35%, rgba(0,0,0,1) 60%, rgba(0,0,0,1) 100%)' },
+    { blur:  '2px', mask: 'linear-gradient(rgba(0,0,0,0) 20%, rgba(0,0,0,1) 45%, rgba(0,0,0,1) 100%)' },
+    { blur:  '1px', mask: 'linear-gradient(rgba(0,0,0,0) 0%,  rgba(0,0,0,1) 30%, rgba(0,0,0,1) 100%)' },
+  ]
+  return (
+    <div style={{
+      position: 'absolute',
+      ...(top ? { top: 0 } : { bottom: 0 }),
+      left: 0, right: 0,
+      height: top ? 'calc(var(--safe-top) + 140px)' : 'calc(var(--safe-bottom) + 140px)',
+      pointerEvents: 'none', zIndex: 5,
+    }}>
+      {layers.map((l, i) => (
+        <div key={i} style={{
+          position: 'absolute', inset: 0,
+          backdropFilter: `blur(${l.blur})`,
+          WebkitBackdropFilter: `blur(${l.blur})`,
+          mask: l.mask,
+          WebkitMask: l.mask,
+        }} />
+      ))}
+    </div>
+  )
+}
 
 function SpendingLimitsBannerCarousel() {
   const [dismissed, setDismissed] = useState({})
