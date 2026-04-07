@@ -32,7 +32,7 @@ from models import User, Account, Category, Transaction, TransferDetail
 from schemas import (
     UserCreate, UserOut,
     AccountCreate, AccountOut,
-    CategoryOut,
+    CategoryCreate, CategoryOut,
     TransactionCreate, TransactionOut,
     BulkTransactionCreate,
 )
@@ -219,6 +219,19 @@ async def delete_account(account_id: int, db: AsyncSession = Depends(get_db)):
 async def list_categories(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Category))
     return result.scalars().all()
+
+
+@app.post("/categories", response_model=CategoryOut)
+async def create_category(data: CategoryCreate, db: AsyncSession = Depends(get_db)):
+    existing = await db.execute(select(Category).where(Category.key == data.key))
+    cat = existing.scalar_one_or_none()
+    if cat:
+        return cat
+    cat = Category(key=data.key, label=data.label, icon=data.icon, color=data.color)
+    db.add(cat)
+    await db.commit()
+    await db.refresh(cat)
+    return cat
 
 
 # ── Transactions ───────────────────────────────────────────────────────────────

@@ -97,10 +97,20 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
   const [showPicker, setShowPicker] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
-  function handleAddCategory(newCat) {
+  async function handleAddCategory(newCat) {
     const updated = [...customCats, newCat]
     setCustomCats(updated)
     saveCustomCats(updated)
+    // Persist to DB so HomeScreen can show the correct icon
+    try {
+      await fetch(`${API_BASE}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: newCat.key, label: newCat.label, icon: newCat.emoji, color: newCat.color }),
+      })
+    } catch (e) {
+      console.error('Failed to save category:', e)
+    }
   }
 
   // Set category from DB: prefer initialCategoryKey, fallback to 'other'

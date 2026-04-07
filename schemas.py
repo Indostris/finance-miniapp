@@ -36,6 +36,13 @@ class AccountOut(BaseModel):
 
 
 # ── Categories ─────────────────────────────────────────────────────────────────
+class CategoryCreate(BaseModel):
+    key:   str
+    label: str
+    icon:  Optional[str] = None
+    color: Optional[str] = None
+
+
 class CategoryOut(BaseModel):
     id: int
     key: str
