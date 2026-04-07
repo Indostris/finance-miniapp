@@ -42,15 +42,11 @@ services:
     depends_on:
       - backend
 
-  # ── ngrok tunnel ──────────────────────────────────────────────────────────────
-  ngrok:
-    image: ngrok/ngrok:latest
+  # ── Cloudflare tunnel ─────────────────────────────────────────────────────────
+  cloudflare:
+    image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: http frontend:80 --log=stdout
-    ports:
-      - "4040:4040"
-    environment:
-      NGROK_AUTHTOKEN: "${NGROK_AUTHTOKEN}"
+    command: tunnel --no-autoupdate --url http://frontend:80
     depends_on:
       - frontend
 
@@ -62,7 +58,7 @@ services:
     restart: unless-stopped
     env_file: .env
     depends_on:
-      - ngrok
+      - cloudflare
 
 volumes:
   postgres_data:
