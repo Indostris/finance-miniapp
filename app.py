@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from typing import List
 import uvicorn
 
@@ -182,9 +182,7 @@ async def list_accounts(user_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post("/users/{user_id}/accounts", response_model=AccountOut)
 async def create_account(user_id: int, data: AccountCreate, db: AsyncSession = Depends(get_db)):
-    if not await db.get(User, user_id):
-        db.add(User(id=user_id, username=None))
-        await db.flush()
+    await db.execute(text("INSERT INTO users (id) VALUES (:uid) ON CONFLICT DO NOTHING"), {"uid": user_id})
     account = Account(user_id=user_id, **data.model_dump())
     db.add(account)
     await db.commit()
@@ -226,9 +224,7 @@ async def list_transactions(user_id: int, db: AsyncSession = Depends(get_db)):
 async def create_transaction(
     user_id: int, data: TransactionCreate, db: AsyncSession = Depends(get_db)
 ):
-    if not await db.get(User, user_id):
-        db.add(User(id=user_id, username=None))
-        await db.flush()
+    await db.execute(text("INSERT INTO users (id) VALUES (:uid) ON CONFLICT DO NOTHING"), {"uid": user_id})
     category_id = await _resolve_category(data.category_key, db)
     tx = Transaction(
         user_id=user_id,
