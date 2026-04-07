@@ -400,6 +400,30 @@ function CategoryPicker({ categories, selected, onSelect, onClose }) {
               )}
             </button>
           ))}
+
+          {/* Add category row */}
+          <button
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center',
+              gap: 12, padding: '12px 16px',
+              background: 'none', border: 'none', cursor: 'pointer',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+              border: '1.5px solid #0088FF',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ color: '#0088FF', fontSize: 22, lineHeight: 1, marginTop: -1 }}>+</span>
+            </div>
+            <span style={{
+              fontFamily: "'SF Pro', -apple-system, sans-serif",
+              fontSize: 16, fontWeight: 510, color: '#0088FF', letterSpacing: '-0.5px',
+            }}>
+              Add category
+            </span>
+          </button>
         </div>
       </div>
 
