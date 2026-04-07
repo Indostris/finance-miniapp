@@ -6,12 +6,16 @@ import App from './App'
 // Init Telegram Mini App
 const tg = window.Telegram?.WebApp
 if (tg) {
-  tg.ready()
-  tg.expand()
-  tg.requestFullscreen?.()
-  tg.setHeaderColor('#000000')
-  tg.setBackgroundColor('#000000')
-  tg.setBottomBarColor?.('#000000')
+  try {
+    tg.ready()
+    tg.expand()
+    tg.requestFullscreen?.()
+    tg.setHeaderColor('#000000')
+    tg.setBackgroundColor('#000000')
+    tg.setBottomBarColor?.('#000000')
+  } catch (e) {
+    // Ignore unsupported method errors (e.g. outside Telegram)
+  }
 }
 
 createRoot(document.getElementById('root')).render(<App />)

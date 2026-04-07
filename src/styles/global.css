@@ -63,8 +63,8 @@
   --accent-blue-12: rgba(0,136,255,0.12);
   --accent-green:  #00E8B3;
   --label-secondary: rgba(255,255,255,0.60);
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  --safe-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tg-content-safe-area-inset-bottom, 0px));
 }
 
 html, body, #root {
