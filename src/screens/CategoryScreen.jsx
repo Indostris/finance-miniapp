@@ -64,7 +64,7 @@ export default function CategoryScreen({ onBack, onContinue }) {
           Mos keladigan barcha variantlarni tanlang — kerakli toifalarni o'zimiz qo'shamiz
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 8 }}>
           {CATEGORIES.map(cat => (
             <CategoryChip
               key={cat.id}
@@ -74,6 +74,8 @@ export default function CategoryScreen({ onBack, onContinue }) {
             />
           ))}
         </div>
+
+        <AddCategoryBtn />
 
         {selected.size > 0 && (
           <div style={{
@@ -144,6 +146,39 @@ function CategoryChip({ cat, selected, onToggle }) {
           </span>
         )}
       </div>
+    </button>
+  )
+}
+
+function AddCategoryBtn() {
+  const [pressed, setPressed] = useState(false)
+  return (
+    <button
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+        padding: '12px 8px', background: 'transparent',
+        border: 'none', cursor: 'pointer', textAlign: 'left',
+        opacity: pressed ? 0.6 : 1, transition: 'opacity 0.12s',
+        marginBottom: 16,
+      }}
+    >
+      <div style={{
+        width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+        border: '1.5px solid #0088FF',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ color: '#0088FF', fontSize: 20, lineHeight: 1, marginTop: -1 }}>+</span>
+      </div>
+      <span style={{
+        fontFamily: "'SF Pro', -apple-system, sans-serif",
+        fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px',
+        color: '#0088FF',
+      }}>
+        Add category
+      </span>
     </button>
   )
 }
