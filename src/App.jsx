@@ -20,13 +20,21 @@ export default function App() {
 
   // On mount: check if this Telegram user already exists in the DB
   useEffect(() => {
-    fetch(`${API_BASE}/users/${userId}`)
+    // In browser (not Telegram), skip auth check and go straight to onboarding
+    if (!window.Telegram?.WebApp?.initData) {
+      go('onboarding')
+      return
+    }
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
+    fetch(`${API_BASE}/users/${userId}`, { signal: controller.signal })
       .then(r => {
+        clearTimeout(timeout)
         if (r.ok)        return go('home')       // returning user → skip onboarding
         if (r.status === 404) return go('onboarding') // new user → show onboarding
         throw new Error(`HTTP ${r.status}`)
       })
-      .catch(() => go('onboarding')) // on network error, fall through to onboarding
+      .catch(() => { clearTimeout(timeout); go('onboarding') }) // on network error, fall through to onboarding
   }, [])
 
   // Called when OTP screen completes — register the user then continue
