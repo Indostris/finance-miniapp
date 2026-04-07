@@ -182,6 +182,8 @@ async def list_accounts(user_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post("/users/{user_id}/accounts", response_model=AccountOut)
 async def create_account(user_id: int, data: AccountCreate, db: AsyncSession = Depends(get_db)):
+    if not await db.get(User, user_id):
+        raise HTTPException(404, "User not found")
     account = Account(user_id=user_id, **data.model_dump())
     db.add(account)
     await db.commit()
@@ -223,6 +225,8 @@ async def list_transactions(user_id: int, db: AsyncSession = Depends(get_db)):
 async def create_transaction(
     user_id: int, data: TransactionCreate, db: AsyncSession = Depends(get_db)
 ):
+    if not await db.get(User, user_id):
+        raise HTTPException(404, "User not found")
     category_id = await _resolve_category(data.category_key, db)
     tx = Transaction(
         user_id=user_id,
