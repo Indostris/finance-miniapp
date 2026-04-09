@@ -27,6 +27,7 @@ export default function BackButton({ onClick }) {
         fontFeatureSettings: "'ss16' 1",
         lineHeight: '30px',
         mixBlendMode: 'plus-lighter',
+        pointerEvents: 'none',
       }}>
         {CHEVRON}
       </span>

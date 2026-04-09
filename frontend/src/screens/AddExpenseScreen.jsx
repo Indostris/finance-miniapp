@@ -183,7 +183,7 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', pointerEvents: 'none' }}>
             <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>
@@ -255,16 +255,16 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
           {/* Date chip */}
           <button style={chipStyle}>
-            <img src={IC_CALENDAR} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            <img src={IC_CALENDAR} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
             Today
-            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
           </button>
 
           {/* Category chip */}
           <button onClick={() => setShowPicker(true)} style={chipStyle}>
             <CategoryIcon cat={selectedCategory} size={28} />
             {selectedCategory.label}
-            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
           </button>
 
           {/* Account chip — tap to cycle through accounts */}
@@ -272,9 +272,9 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
             onClick={() => accounts.length > 1 && setAccIdx(i => (i + 1) % accounts.length)}
             style={chipStyle}
           >
-            <img src={IC_CARD} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            <img src={IC_CARD} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
             {selectedAcc?.name ?? 'Account'}
-            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter' }} />
+            <img src={IC_CHEVRON} alt="" style={{ width: 28, height: 28, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
           </button>
         </div>
 
@@ -386,7 +386,7 @@ function CategoryPicker({ categories, selected, onSelect, onClose, onAddCategory
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', pointerEvents: 'none' }}>
             <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>

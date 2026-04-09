@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import AddExpenseScreen  from './AddExpenseScreen'
 import AssistantScreen   from './AssistantScreen'
 import AddWalletScreen   from './AddWalletScreen'
+import ProfileScreen     from './ProfileScreen'
 import ProgressiveBlur   from '../components/ProgressiveBlur'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -79,11 +80,12 @@ function fmtDateLabel(s) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export default function HomeScreen({ userId }) {
+export default function HomeScreen({ userId, username }) {
   const [selectedTab,  setSelectedTab]  = useState(0)
   const [addType,      setAddType]      = useState(null)
   const [showAI,       setShowAI]       = useState(false)
   const [showMenu,     setShowMenu]     = useState(false)
+  const [showProfile,  setShowProfile]  = useState(false)
   const [transactions, setTransactions] = useState([])
   const [accounts,     setAccounts]     = useState([])
   const [categories,   setCategories]   = useState([])
@@ -129,6 +131,10 @@ export default function HomeScreen({ userId }) {
   }
 
   const txGroups = groupByDate(filteredTx.slice(0, 4))
+
+  if (showProfile) return (
+    <ProfileScreen userId={userId} username={username} onClose={() => setShowProfile(false)} />
+  )
 
   if (showAllTx) return (
     <AllTransactionsScreen
@@ -287,11 +293,11 @@ export default function HomeScreen({ userId }) {
             padding: '0 4px', height: 44,
             background: 'rgba(28,28,30,0.85)', borderRadius: 999,
           }}>
-            <button style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', mixBlendMode: 'plus-lighter' }}>
-              <img src={IC_PROFILE} alt="profile" style={{ width: 36, height: 36 }} />
+            <button onClick={() => setShowProfile(true)} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <img src={IC_PROFILE} alt="profile" style={{ width: 36, height: 36, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
             </button>
-            <button style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', mixBlendMode: 'plus-lighter' }}>
-              <img src={IC_SETTINGS} alt="settings" style={{ width: 36, height: 36 }} />
+            <button style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <img src={IC_SETTINGS} alt="settings" style={{ width: 36, height: 36, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
             </button>
           </div>
         </div>
@@ -334,7 +340,7 @@ export default function HomeScreen({ userId }) {
             boxShadow: '0 4px 12px 0 rgba(0,0,0,0.25)',
           }}
         >
-          <img src={IC_FAB_PLUS} alt="+" style={{ width: 25, height: 25, mixBlendMode: 'plus-lighter' }} />
+          <img src={IC_FAB_PLUS} alt="+" style={{ width: 25, height: 25, mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
         </button>
       </div>
     </div>
@@ -519,6 +525,7 @@ function TabBtn({ tab, active, onClick }) {
             display: 'block', width: '100%', height: '100%', objectFit: 'contain',
             mixBlendMode: active ? 'normal' : 'plus-lighter',
             opacity: active ? 1 : 0.75,
+            pointerEvents: 'none',
           }}
         />
       </div>
@@ -588,7 +595,7 @@ function AllTransactionsScreen({ transactions, catMap, accMap, onBack }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', pointerEvents: 'none' }}>
             <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>

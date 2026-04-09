@@ -403,7 +403,7 @@ export default function AddWalletScreen({ userId, onClose, onCreated }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', pointerEvents: 'none' }}>
             <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
           </div>
         </button>

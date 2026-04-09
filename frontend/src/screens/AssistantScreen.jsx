@@ -263,13 +263,13 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
         flexShrink: 0, position: 'relative', zIndex: 11,
       }}>
         <button onClick={onBack} style={pillBtn}>
-          <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex', alignItems: 'center' }}>
+          <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
             <img src={IC_BACK} alt="" style={{ width: 32, height: 32, display: 'block' }} />
           </div>
         </button>
         <span style={{ fontSize: 17, color: '#fff', letterSpacing: '-0.43px' }}>New chat</span>
         <button style={pillBtn}>
-          <div style={{ mixBlendMode: 'plus-lighter', display: 'flex', alignItems: 'center' }}>
+          <div style={{ mixBlendMode: 'plus-lighter', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
             <img src={IC_LIST} alt="" style={{ width: 32, height: 32, display: 'block' }} />
           </div>
         </button>
@@ -390,7 +390,7 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
         position: 'relative', zIndex: 11,
       }}>
         <button onClick={() => fileRef.current?.click()} style={circBtn}>
-          <img src={IC_ATTACH} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter' }} />
+          <img src={IC_ATTACH} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
         </button>
 
         <div style={{ flex: 1, minHeight: 42, borderRadius: 21, background: '#1C1C1E', display: 'flex', alignItems: 'center', padding: 3 }}>
@@ -426,7 +426,7 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
             ) : recording ? (
               <span style={{ color: '#fff', fontSize: 14, lineHeight: 1 }}>◼</span>
             ) : (
-              <img src={IC_MIC} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter' }} />
+              <img src={IC_MIC} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter', pointerEvents: 'none' }} />
             )}
           </button>
         </div>
