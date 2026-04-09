@@ -1,7 +1,5 @@
 import os
 import asyncio
-import torch
-import librosa
 import warnings
 import subprocess
 import shutil
@@ -10,16 +8,23 @@ from concurrent.futures import ThreadPoolExecutor
 
 warnings.filterwarnings("ignore")
 
+try:
+    import torch
+    import librosa
+    from transformers import WhisperProcessor, WhisperForConditionalGeneration
+    VOICE_ENABLED = True
+except ImportError:
+    VOICE_ENABLED = False
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from typing import List
 import uvicorn
 
 from dotenv import load_dotenv
-from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
 from llama_text_separate import extract_finance_data
 from database import engine, get_db, Base
@@ -27,7 +32,7 @@ from models import User, Account, Category, Transaction, TransferDetail
 from schemas import (
     UserCreate, UserOut,
     AccountCreate, AccountOut,
-    CategoryOut,
+    CategoryCreate, CategoryOut,
     TransactionCreate, TransactionOut,
     BulkTransactionCreate,
 )
@@ -35,7 +40,7 @@ from schemas import (
 load_dotenv()
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-device   = "cuda" if torch.cuda.is_available() else "cpu"
+device   = "cuda" if (VOICE_ENABLED and torch.cuda.is_available()) else "cpu"
 
 # Category seed data — mirrors CATEGORY_META in the frontend
 CATEGORY_SEED = [
@@ -64,7 +69,6 @@ async def lifespan(app: FastAPI):
 
     # ── DB: seed categories if empty ───────────────────────────────────────────
     async with engine.begin() as conn:
-        from sqlalchemy import text
         result = await conn.execute(text("SELECT COUNT(*) FROM categories"))
         count = result.scalar()
         if count == 0:
@@ -73,14 +77,7 @@ async def lifespan(app: FastAPI):
                 CATEGORY_SEED,
             )
 
-    # ── Whisper model ──────────────────────────────────────────────────────────
-    global processor, model
-    print(f"Device: {device}")
-    print("Whisper model yuklanmoqda...")
-    processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-    model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
-    model = model.to(device)
-    print("Whisper model yuklandi!")
+    print("Voice features disabled (torch not available)" if not VOICE_ENABLED else "Voice ready (lazy load)")
 
     yield
 
@@ -97,11 +94,26 @@ app.add_middleware(
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+def _load_model():
+    global processor, model
+    if processor is not None:
+        return
+    print("Loading Whisper model...")
+    processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+    model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
+    model = model.to(device)
+    model = torch.compile(model)
+    print("Whisper model loaded!")
+
+
 def _transcribe(audio_path: str) -> str:
+    if not VOICE_ENABLED:
+        raise RuntimeError("Voice features unavailable: torch not installed")
+    _load_model()
     wav_path = audio_path.rsplit(".", 1)[0] + ".wav"
     subprocess.run(
         ["ffmpeg", "-i", audio_path, "-ar", "16000", "-ac", "1", wav_path, "-y"],
-        capture_output=True,
+        capture_output=True, check=True,
     )
     waveform, _ = librosa.load(wav_path, sr=16000, mono=True)
     inputs = processor(waveform, sampling_rate=16000, return_tensors="pt", language="uz")
@@ -155,7 +167,6 @@ async def upsert_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
         user = User(id=data.id, username=data.username)
         db.add(user)
         await db.flush()
-        # Seed default Cash account for every new user
         db.add(Account(user_id=user.id, name="Cash", currency="UZS", balance=0))
         await db.commit()
         await db.refresh(user)
@@ -181,6 +192,7 @@ async def list_accounts(user_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post("/users/{user_id}/accounts", response_model=AccountOut)
 async def create_account(user_id: int, data: AccountCreate, db: AsyncSession = Depends(get_db)):
+    await db.execute(text("INSERT INTO users (id) VALUES (:uid) ON CONFLICT DO NOTHING"), {"uid": user_id})
     account = Account(user_id=user_id, **data.model_dump())
     db.add(account)
     await db.commit()
@@ -207,6 +219,19 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 
+@app.post("/categories", response_model=CategoryOut)
+async def create_category(data: CategoryCreate, db: AsyncSession = Depends(get_db)):
+    existing = await db.execute(select(Category).where(Category.key == data.key))
+    cat = existing.scalar_one_or_none()
+    if cat:
+        return cat
+    cat = Category(key=data.key, label=data.label, icon=data.icon, color=data.color)
+    db.add(cat)
+    await db.commit()
+    await db.refresh(cat)
+    return cat
+
+
 # ── Transactions ───────────────────────────────────────────────────────────────
 @app.get("/users/{user_id}/transactions", response_model=List[TransactionOut])
 async def list_transactions(user_id: int, db: AsyncSession = Depends(get_db)):
@@ -222,6 +247,7 @@ async def list_transactions(user_id: int, db: AsyncSession = Depends(get_db)):
 async def create_transaction(
     user_id: int, data: TransactionCreate, db: AsyncSession = Depends(get_db)
 ):
+    await db.execute(text("INSERT INTO users (id) VALUES (:uid) ON CONFLICT DO NOTHING"), {"uid": user_id})
     category_id = await _resolve_category(data.category_key, db)
     tx = Transaction(
         user_id=user_id,

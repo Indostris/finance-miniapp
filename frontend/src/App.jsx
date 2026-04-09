@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import OnboardingScreen from './screens/OnboardingScreen'
 import PhoneScreen      from './screens/PhoneScreen'
 import OTPScreen        from './screens/OTPScreen'
@@ -7,34 +7,50 @@ import HomeScreen       from './screens/HomeScreen'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
-const tg       = window.Telegram?.WebApp
-const TG_USER  = tg?.initDataUnsafe?.user
-const userId   = TG_USER?.id       ?? 1
-const username = TG_USER?.username ?? null
-
 export default function App() {
   const [screen, setScreen] = useState('loading')
   const [phone,  setPhone]  = useState('')
+  // userId/username resolved after tg.ready() fires — safe on iOS WKWebView
+  const userIdRef  = useRef(1)
+  const usernameRef = useRef(null)
 
   const go = useCallback((s) => setScreen(s), [])
 
-  // On mount: check if this Telegram user already exists in the DB
+  // On mount: wait for Telegram WebApp to be ready, then check if user exists
   useEffect(() => {
-    // In browser (not Telegram), skip auth check and go straight to onboarding
-    if (!window.Telegram?.WebApp?.initData) {
-      go('onboarding')
-      return
+    const tg = window.Telegram?.WebApp
+
+    function init() {
+      const user = tg?.initDataUnsafe?.user
+      userIdRef.current  = user?.id       ?? 1
+      usernameRef.current = user?.username ?? null
+
+      if (!tg?.initData) {
+        go('onboarding')
+        return
+      }
+
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 8000)
+      fetch(`${API_BASE}/users/${userIdRef.current}`, { signal: controller.signal })
+        .then(r => {
+          clearTimeout(timeout)
+          if (r.ok)             return go('home')
+          if (r.status === 404) return go('onboarding')
+          throw new Error(`HTTP ${r.status}`)
+        })
+        .catch(() => { clearTimeout(timeout); go('onboarding') })
     }
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 5000)
-    fetch(`${API_BASE}/users/${userId}`, { signal: controller.signal })
-      .then(r => {
-        clearTimeout(timeout)
-        if (r.ok)        return go('home')       // returning user → skip onboarding
-        if (r.status === 404) return go('onboarding') // new user → show onboarding
-        throw new Error(`HTTP ${r.status}`)
-      })
-      .catch(() => { clearTimeout(timeout); go('onboarding') }) // on network error, fall through to onboarding
+
+    if (tg) {
+      // ready() signals Telegram that the app is loaded;
+      // on iOS the JS bridge may not be fully set up until this call resolves
+      tg.ready()
+      // Give the bridge a tick to populate initDataUnsafe on iOS
+      setTimeout(init, 50)
+    } else {
+      init()
+    }
   }, [])
 
   // Called when OTP screen completes — register the user then continue
@@ -43,7 +59,7 @@ export default function App() {
       await fetch(`${API_BASE}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, username }),
+        body: JSON.stringify({ id: userIdRef.current, username: usernameRef.current }),
       })
     } catch (e) {
       console.error('Failed to register user:', e)
@@ -96,7 +112,7 @@ export default function App() {
         />
       )}
       {screen === 'home' && (
-        <HomeScreen userId={userId} />
+        <HomeScreen userId={userIdRef.current} />
       )}
     </div>
   )

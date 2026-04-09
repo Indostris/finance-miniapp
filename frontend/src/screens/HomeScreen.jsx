@@ -177,7 +177,7 @@ export default function HomeScreen({ userId }) {
 
       {/* Scrollable content */}
       <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 1 }}>
-        <div style={{ paddingTop: 'calc(var(--safe-top) + 120px)', paddingBottom: '120px' }}>
+        <div style={{ paddingTop: 'calc(var(--safe-top) + 68px)', paddingBottom: '120px' }}>
 
           {/* Balance */}
           <div style={{ textAlign: 'center', padding: '0 66px 32px' }}>
@@ -274,7 +274,7 @@ export default function HomeScreen({ userId }) {
       {/* Top bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        padding: 'calc(var(--safe-top) + 62px) 16px 10px',
+        padding: 'calc(var(--safe-top) + 6px) 16px 10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52 }}>
           <span style={{
@@ -409,8 +409,21 @@ function RollingNumber({ value, size, weight, lineH, color, spacing }) {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-function CategoryIcon({ catKey }) {
-  return <img src={CAT_ICONS[catKey] ?? IC_CAT_OTHER} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
+function CategoryIcon({ cat }) {
+  // Custom category (not in static icon map) — render emoji + color circle
+  if (cat && !CAT_ICONS[cat.key] && cat.icon) {
+    return (
+      <div style={{
+        width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+        background: cat.color ?? '#8E8E93',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 22, lineHeight: 1,
+      }}>
+        {cat.icon}
+      </div>
+    )
+  }
+  return <img src={CAT_ICONS[cat?.key] ?? IC_CAT_OTHER} alt="" style={{ width: 40, height: 40, display: 'block', flexShrink: 0 }} />
 }
 
 function CTAButton({ title, blue, onClick }) {
@@ -461,19 +474,20 @@ function TxGroup({ group, catMap, accMap }) {
         {group.items.map(tx => {
           const cat = catMap[tx.category_id]
           const acc = accMap[tx.account_id]
-          return <TxRow key={tx.id} tx={tx} catKey={cat?.key} accName={acc?.name ?? ''} />
+          return <TxRow key={tx.id} tx={tx} cat={cat} accName={acc?.name ?? ''} />
         })}
       </div>
     </div>
   )
 }
 
-function TxRow({ tx, catKey, accName }) {
-  const label = tx.note || (catKey ? catKey.charAt(0).toUpperCase() + catKey.slice(1) : 'Transaction')
+function TxRow({ tx, cat, accName }) {
+  const catKey = cat?.key
+  const label = tx.note || (cat?.label ?? (catKey ? catKey.charAt(0).toUpperCase() + catKey.slice(1) : 'Transaction'))
   const prefix = tx.type === 'expense' ? '- ' : '+ '
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 10px', height: 60, background: '#1C1C1E', borderRadius: 20 }}>
-      <CategoryIcon catKey={catKey ?? 'other'} />
+      <CategoryIcon cat={cat} />
       <span style={{ flex: 1, fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 16, fontWeight: 510, letterSpacing: '-0.5px', color: '#fff', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
         {label}
       </span>
