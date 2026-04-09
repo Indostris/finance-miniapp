@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
+import ProgressiveBlur from '../components/ProgressiveBlur'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_BACK     from '../assets/icons/ui/ai-back.svg'
@@ -248,12 +249,18 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
 
+      {/* Progressive blur top */}
+      <ProgressiveBlur edge="top" zIndex={10} />
+
+      {/* Progressive blur bottom */}
+      <ProgressiveBlur edge="bottom" height="calc(var(--safe-bottom) + 100px)" zIndex={10} />
+
       {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
         paddingTop: 'var(--safe-top, env(safe-area-inset-top, 44px))',
         height: 'calc(var(--safe-top, env(safe-area-inset-top, 44px)) + 52px)',
-        flexShrink: 0,
+        flexShrink: 0, position: 'relative', zIndex: 11,
       }}>
         <button onClick={onBack} style={pillBtn}>
           <div style={{ mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)', display: 'flex', alignItems: 'center' }}>
@@ -380,6 +387,7 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
         flexShrink: 0, display: 'flex', alignItems: 'flex-end', gap: 6,
         padding: '4px 16px',
         paddingBottom: 'calc(var(--safe-bottom, env(safe-area-inset-bottom, 0px)) + 8px)',
+        position: 'relative', zIndex: 11,
       }}>
         <button onClick={() => fileRef.current?.click()} style={circBtn}>
           <img src={IC_ATTACH} alt="" style={{ width: 20, height: 20, display: 'block', mixBlendMode: 'plus-lighter' }} />

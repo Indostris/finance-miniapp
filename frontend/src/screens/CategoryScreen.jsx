@@ -106,6 +106,7 @@ function CategoryChip({ cat, selected, onToggle }) {
       onPointerLeave={() => setPressed(false)}
       style={{
         width: 'calc(50% - 1px)',
+        boxSizing: 'border-box',
         display: 'flex', alignItems: 'center', gap: 8,
         padding: 8,
         background: '#1C1C1E', borderRadius: 20,

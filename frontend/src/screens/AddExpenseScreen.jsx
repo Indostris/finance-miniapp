@@ -22,6 +22,7 @@ const CAT_ICON_MAP = {
   other:         IC_CAT_OTHER,
 }
 
+import ProgressiveBlur from '../components/ProgressiveBlur'
 import IC_TYPE_ADD from '../assets/icons/ui/type-add.svg'
 import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.svg'
 import IC_TYPE_INC from '../assets/icons/ui/type-income.svg'
@@ -146,16 +147,8 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
   return (
     <div data-file="src/screens/AddExpenseScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Top progressive blur */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 120,
-        zIndex: 5, pointerEvents: 'none',
-        background: 'rgba(0,0,0,0.7)',
-        WebkitMaskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)',
-        maskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-      }} />
+      {/* Progressive blur top */}
+      <ProgressiveBlur edge="top" />
 
       {/* Toolbar */}
       <div style={{
@@ -308,7 +301,7 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
             fontSize: 17, fontWeight: 510, letterSpacing: '-0.43px', cursor: 'pointer',
           }}
         >
-          {saving ? 'Saving...' : onSave ? 'Save changes' : `Add ${type.toLowerCase()}`}
+          {saving ? 'Saving...' : `Add ${type.toLowerCase()}`}
         </button>
       </div>
 
@@ -400,30 +393,6 @@ function CategoryPicker({ categories, selected, onSelect, onClose }) {
               )}
             </button>
           ))}
-
-          {/* Add category row */}
-          <button
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center',
-              gap: 12, padding: '12px 16px',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-              border: '1.5px solid #0088FF',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#0088FF', fontSize: 22, lineHeight: 1, marginTop: -1 }}>+</span>
-            </div>
-            <span style={{
-              fontFamily: "'SF Pro', -apple-system, sans-serif",
-              fontSize: 16, fontWeight: 510, color: '#0088FF', letterSpacing: '-0.5px',
-            }}>
-              Add category
-            </span>
-          </button>
         </div>
       </div>
 

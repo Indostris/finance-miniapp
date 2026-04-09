@@ -1,10 +1,21 @@
+# Python
 .venv/
-node_modules/
-dist/
 __pycache__/
 *.pyc
-*.pem
+
+# Node
+node_modules/
+frontend/node_modules/
+bot/node_modules/
+
+# Build output
+frontend/dist/
+
+# Dev & system
 .git/
 .idea/
 .DS_Store
+*.pem
+
+# Secrets
 .env

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import AddExpenseScreen from './AddExpenseScreen'
-import AssistantScreen  from './AssistantScreen'
-import AddWalletScreen  from './AddWalletScreen'
+import AddExpenseScreen  from './AddExpenseScreen'
+import AssistantScreen   from './AssistantScreen'
+import AddWalletScreen   from './AddWalletScreen'
+import ProgressiveBlur   from '../components/ProgressiveBlur'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_CAT_FOOD         from '../assets/icons/categories/meal.svg'
@@ -19,6 +20,7 @@ import IC_TAB_ANALYTICS from '../assets/icons/ic_tab_analytics.svg'
 import IC_FAB_PLUS      from '../assets/icons/ic_fab_plus.svg'
 import IC_PROFILE       from '../assets/icons/ic_profile.svg'
 import IC_SETTINGS      from '../assets/icons/ic_settings.svg'
+import IC_BACK          from '../assets/icons/ui/back.svg'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -87,6 +89,7 @@ export default function HomeScreen({ userId }) {
   const [categories,   setCategories]   = useState([])
   const [selectedAccount, setSelectedAccount] = useState(null)
   const [showAddWallet,   setShowAddWallet]   = useState(false)
+  const [showAllTx,       setShowAllTx]       = useState(false)
 
   function fetchData() {
     Promise.all([
@@ -110,17 +113,31 @@ export default function HomeScreen({ userId }) {
   const accMap = {}
   for (const a of accounts) accMap[a.id] = a
 
-  // Monthly totals (current month)
+  // Filter transactions by selected account
+  const filteredTx = selectedAccount === 'all' || selectedAccount === null
+    ? transactions
+    : transactions.filter(tx => tx.account_id === selectedAccount)
+
+  // Monthly totals (current month, filtered by account)
   const thisMonth = new Date().toISOString().slice(0, 7)
   let monthIncome = 0, monthSpent = 0
-  for (const tx of transactions) {
+  for (const tx of filteredTx) {
     const m = (tx.date ?? tx.created_at?.split('T')[0] ?? '').slice(0, 7)
     if (m !== thisMonth) continue
     if (tx.type === 'income')  monthIncome += Number(tx.amount)
     if (tx.type === 'expense') monthSpent  += Number(tx.amount)
   }
 
-  const txGroups = groupByDate(transactions.slice(0, 4))
+  const txGroups = groupByDate(filteredTx.slice(0, 4))
+
+  if (showAllTx) return (
+    <AllTransactionsScreen
+      transactions={filteredTx}
+      catMap={catMap}
+      accMap={accMap}
+      onBack={() => setShowAllTx(false)}
+    />
+  )
 
   if (showAddWallet) return (
     <AddWalletScreen
@@ -418,7 +435,10 @@ function SectionHeader({ title }) {
     <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px 16px' }}>
       <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 22, fontWeight: 590, letterSpacing: '-0.5px', lineHeight: '28px', color: '#fff' }}>{title}</span>
       <div style={{ flex: 1 }} />
-      <span style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 17, fontWeight: 400, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.43px' }}>
+      <span
+        onClick={() => setShowAllTx(true)}
+        style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 17, fontWeight: 400, color: 'rgba(235,235,245,0.6)', letterSpacing: '-0.43px', cursor: 'pointer' }}
+      >
         {`View all \u{10018A}`}
       </span>
     </div>
@@ -502,40 +522,67 @@ function TabBtn({ tab, active, onClick }) {
 const ACTION_ITEMS = ['Debt', 'Expense', 'Income', 'Transfer']
 const ACTION_ICONS = { Debt: '→', Expense: '+', Income: '↓', Transfer: '⇄' }
 
-function ProgressiveBlur({ edge = 'top' }) {
-  const top = edge === 'top'
-  const layers = top ? [
-    { blur: '32px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 30%)' },
-    { blur: '16px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 40%)' },
-    { blur:  '8px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 55%)' },
-    { blur:  '4px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 65%)' },
-    { blur:  '2px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 80%)' },
-    { blur:  '1px', mask: 'linear-gradient(rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)' },
-  ] : [
-    { blur: '32px', mask: 'linear-gradient(rgba(0,0,0,0) 70%, rgba(0,0,0,1) 90%, rgba(0,0,0,1) 100%)' },
-    { blur: '16px', mask: 'linear-gradient(rgba(0,0,0,0) 60%, rgba(0,0,0,1) 80%, rgba(0,0,0,1) 100%)' },
-    { blur:  '8px', mask: 'linear-gradient(rgba(0,0,0,0) 45%, rgba(0,0,0,1) 70%, rgba(0,0,0,1) 100%)' },
-    { blur:  '4px', mask: 'linear-gradient(rgba(0,0,0,0) 35%, rgba(0,0,0,1) 60%, rgba(0,0,0,1) 100%)' },
-    { blur:  '2px', mask: 'linear-gradient(rgba(0,0,0,0) 20%, rgba(0,0,0,1) 45%, rgba(0,0,0,1) 100%)' },
-    { blur:  '1px', mask: 'linear-gradient(rgba(0,0,0,0) 0%,  rgba(0,0,0,1) 30%, rgba(0,0,0,1) 100%)' },
-  ]
+// ── All Transactions Screen ───────────────────────────────────────────────────
+function AllTransactionsScreen({ transactions, catMap, accMap, onBack }) {
+  const groups = groupByDate(transactions)
+
   return (
-    <div style={{
-      position: 'absolute',
-      ...(top ? { top: 0 } : { bottom: 0 }),
-      left: 0, right: 0,
-      height: top ? 'calc(var(--safe-top) + 140px)' : 'calc(var(--safe-bottom) + 140px)',
-      pointerEvents: 'none', zIndex: 5,
-    }}>
-      {layers.map((l, i) => (
-        <div key={i} style={{
-          position: 'absolute', inset: 0,
-          backdropFilter: `blur(${l.blur})`,
-          WebkitBackdropFilter: `blur(${l.blur})`,
-          mask: l.mask,
-          WebkitMask: l.mask,
-        }} />
-      ))}
+    <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
+
+      {/* Blue gradient */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '30%',
+        background: 'linear-gradient(180deg, rgba(0,136,255,0.15) 0%, transparent 100%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+
+      {/* Scrollable list */}
+      <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 1 }}>
+        <div style={{ paddingTop: 'calc(var(--safe-top) + 80px)', paddingBottom: 'calc(var(--safe-bottom) + 40px)', padding: 'calc(var(--safe-top) + 80px) 16px calc(var(--safe-bottom) + 40px)' }}>
+          {groups.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'rgba(235,235,245,0.35)', fontSize: 15, letterSpacing: '-0.3px', paddingTop: 40 }}>
+              No transactions yet
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {groups.map(g => (
+                <TxGroup key={g.date} group={g} catMap={catMap} accMap={accMap} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progressive blur top */}
+      <ProgressiveBlur edge="top" />
+
+      {/* Progressive blur bottom */}
+      <ProgressiveBlur edge="bottom" height="calc(var(--safe-bottom) + 80px)" />
+
+      {/* Top bar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+        padding: 'calc(var(--safe-top) + 10px) 16px 0',
+        height: 'calc(var(--safe-top) + 62px)',
+        display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            width: 60, height: 45, borderRadius: 999, flexShrink: 0,
+            background: 'rgba(28,28,30,0.85)', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div style={{ width: 32, height: 32, mixBlendMode: 'plus-lighter', transform: 'rotate(90deg)' }}>
+            <img src={IC_BACK} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </button>
+        <span style={{
+          fontFamily: "'SF Pro Rounded', -apple-system, sans-serif",
+          fontSize: 28, fontWeight: 700, letterSpacing: '-0.6px', color: '#fff',
+        }}>All transactions</span>
+      </div>
     </div>
   )
 }

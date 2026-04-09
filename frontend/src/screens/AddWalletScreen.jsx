@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ProgressiveBlur from '../components/ProgressiveBlur'
 import IC_BACK   from '../assets/icons/ui/back.svg'
 import IC_DELETE from '../assets/icons/ui/delete.svg'
 
@@ -402,6 +403,9 @@ export default function AddWalletScreen({ userId, onClose, onCreated }) {
           ))}
         </div>
       </div>
+
+      {/* Progressive blur top */}
+      <ProgressiveBlur edge="top" zIndex={10} />
 
       {/* Screens */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>

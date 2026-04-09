@@ -80,7 +80,6 @@ async def lifespan(app: FastAPI):
     processor = WhisperProcessor.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
     model = WhisperForConditionalGeneration.from_pretrained("islomov/rubaistt_v2_medium", token=HF_TOKEN)
     model = model.to(device)
-    model = torch.compile(model)
     print("Whisper model yuklandi!")
 
     yield

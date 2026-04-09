@@ -112,7 +112,7 @@ def extract_finance_data(text: str) -> list:
     for attempt in range(3):
         try:
             response = requests.post(
-                "http://localhost:11434/api/generate",
+                "http://ollama:11434/api/generate",
                 json={
                     "model": "llama3.2",
                     "prompt": build_prompt(converted_text),
