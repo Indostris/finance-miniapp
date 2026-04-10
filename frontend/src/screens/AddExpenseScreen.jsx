@@ -22,7 +22,7 @@ const CAT_ICON_MAP = {
   other:         IC_CAT_OTHER,
 }
 
-import ProgressiveBlur from '../components/ProgressiveBlur'
+
 import IC_TYPE_ADD from '../assets/icons/ui/type-add.svg'
 import IC_TYPE_TRN from '../assets/icons/ui/type-transfer.svg'
 import IC_TYPE_INC from '../assets/icons/ui/type-income.svg'
@@ -165,8 +165,7 @@ export default function AddExpenseScreen({ type: initType, onClose, onAdd, onSav
   return (
     <div data-file="src/screens/AddExpenseScreen.jsx" style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Progressive blur top */}
-      <ProgressiveBlur edge="top" />
+
 
       {/* Toolbar */}
       <div style={{

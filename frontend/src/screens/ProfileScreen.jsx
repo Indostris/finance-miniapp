@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SubscriptionScreen from './SubscriptionScreen'
 import IC_BACK        from '../assets/icons/ui/back.svg'
 import IC_CHEVRON     from '../assets/icons/ui/chevron.svg'
 import IC_CROWN       from '../assets/icons/custom/crown.svg'
@@ -53,12 +54,21 @@ function Section({ title, children }) {
 }
 
 export default function ProfileScreen({ onClose, userId, username }) {
+  const [showSubscription, setShowSubscription] = useState(false)
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user
   const firstName = tgUser?.first_name ?? username ?? 'User'
   const lastName  = tgUser?.last_name  ?? ''
   const fullName  = [firstName, lastName].filter(Boolean).join(' ')
   const initials  = [firstName[0], lastName[0]].filter(Boolean).join('').toUpperCase() || 'U'
   const photoUrl  = tgUser?.photo_url ?? null
+
+  if (showSubscription) return (
+    <SubscriptionScreen
+      userId={userId}
+      username={username}
+      onClose={() => setShowSubscription(false)}
+    />
+  )
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', zIndex: 20 }}>
@@ -136,7 +146,7 @@ export default function ProfileScreen({ onClose, userId, username }) {
           </span>
 
           {/* Subscription row */}
-          <button style={{
+          <button onClick={() => setShowSubscription(true)} style={{
             width: '100%', height: 60, borderRadius: 20,
             background: '#1c1c1e', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12,

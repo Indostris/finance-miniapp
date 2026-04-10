@@ -186,7 +186,7 @@ export default function HomeScreen({ userId, username }) {
         <div style={{ paddingTop: 'calc(var(--safe-top) + 68px)', paddingBottom: '120px' }}>
 
           {/* Balance */}
-          <div style={{ textAlign: 'center', padding: '0 66px 32px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 66px 28px' }}>
             <div style={{ fontFamily: "'SF Pro', -apple-system, sans-serif", fontSize: 13, letterSpacing: '-0.5px', color: '#fff', marginBottom: 2 }}>
               Monthly income: {fmtAmt(monthIncome)} sums
             </div>
@@ -639,11 +639,11 @@ function SpendingLimitsBannerCarousel() {
           scrollSnapType: 'x mandatory',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
-          padding: '0 16px',
           gap: 12,
         }}
       >
-        {banners.map(banner => (
+        <div style={{ flexShrink: 0, width: 16 }} />
+        {banners.map((banner, idx) => (
           <div key={banner.id} style={{
             scrollSnapAlign: 'start',
             flexShrink: 0,
@@ -684,6 +684,7 @@ function SpendingLimitsBannerCarousel() {
             </button>
           </div>
         ))}
+        <div style={{ flexShrink: 0, width: 16 }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 10 }}>
         {banners.map((_, i) => (

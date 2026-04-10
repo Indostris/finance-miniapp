@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import AddExpenseScreen from './AddExpenseScreen'
-import ProgressiveBlur from '../components/ProgressiveBlur'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import IC_BACK     from '../assets/icons/ui/ai-back.svg'
@@ -248,12 +247,6 @@ export default function AssistantScreen({ onBack, userId, accounts = [], categor
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', flexDirection: 'column', fontFamily: SF }}>
-
-      {/* Progressive blur top */}
-      <ProgressiveBlur edge="top" zIndex={10} />
-
-      {/* Progressive blur bottom */}
-      <ProgressiveBlur edge="bottom" height="calc(var(--safe-bottom) + 100px)" zIndex={10} />
 
       {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
       <div style={{

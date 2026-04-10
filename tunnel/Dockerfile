@@ -7,4 +7,4 @@ RUN ARCH=$(uname -m) && \
     curl -fsSL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}" \
     -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
 VOLUME /tunnel
-CMD ["sh", "-c", "cloudflared tunnel --no-autoupdate --url http://frontend:80 2>&1 | tee /tunnel/tunnel.log"]
+CMD ["sh", "-c", "rm -f /tunnel/tunnel.log && cloudflared tunnel --no-autoupdate --protocol http2 --url http://frontend:80 2>&1 | tee /tunnel/tunnel.log"]

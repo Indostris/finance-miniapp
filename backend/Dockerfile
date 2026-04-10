@@ -19,5 +19,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py database.py models.py schemas.py llama_text_separate.py ./
 
-EXPOSE 5000
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
+EXPOSE 5001
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5001"]
